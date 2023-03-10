@@ -301,7 +301,7 @@ class R3BTrackingS522 : public FairTask
     UInt_t N_glob_tracks;
     UInt_t N_in_tracks;
     UInt_t N_out_tracks;
-    static constexpr UInt_t N_glob_tracks_max = 100000;
+    static constexpr UInt_t N_glob_tracks_max = 10000000;
     UInt_t mul_m0;
     UInt_t mul_m1;
     UInt_t mul_f1;
@@ -316,6 +316,9 @@ class R3BTrackingS522 : public FairTask
     UInt_t mul_foot;
 
     Int_t Tpat;
+    //Double_t ToF[N_glob_tracks_max];
+    //Double_t Beta[N_glob_tracks_max];
+    //Double_t Gamma[N_glob_tracks_max];
     Double_t PoQ[N_glob_tracks_max];
     Double_t FlightPath[N_glob_tracks_max];
     Double_t ToF[N_glob_tracks_max];
