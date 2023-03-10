@@ -269,9 +269,9 @@ void R3BTrackingS522::Exec(Option_t* option)
 	auto frs_DataItems = fDataItems.at(FRS_DATA);
 	if(frs_DataItems->GetEntriesFast() < 1) return; 
 	auto frs_data = (R3BFrsData*)frs_DataItems->At(0);
-	if(frs_data->GetBrho()<17 || frs_data->GetBrho()>18) return;
-	if(frs_data->GetAq()<2.675 || frs_data->GetAq()>2.694) return;
-	if(frs_data->GetZ()<5.2 || frs_data->GetZ()>6.7) return;
+	//if(frs_data->GetBrho()<17 || frs_data->GetBrho()>18) return;
+	//if(frs_data->GetAq()<2.675 || frs_data->GetAq()>2.694) return;
+	//if(frs_data->GetZ()<5.2 || frs_data->GetZ()>6.7) return;
 	//cout << "\nGood event!\n";
 	//------ Get TOFD data 
 	R3BTofdHitData* tofd_hit{};
@@ -334,7 +334,7 @@ void R3BTrackingS522::Exec(Option_t* option)
 			TY0[N_glob_tracks] = MDF_TY0->MDF(mdf_data);
 			TY1[N_glob_tracks] = MDF_TY1->MDF(mdf_data);
 			//cout<<"poQ-> "<<PoQ<<endl;	
-			 
+
 			//----- Calculate Beta
 			// ToF = tofd_hit->GetTof() + tof_offset;
 			ToF[N_glob_tracks] = FlightPath[N_glob_tracks] / frs_data->GetBeta() / SPEED_OF_LIGHT;
@@ -342,7 +342,7 @@ void R3BTrackingS522::Exec(Option_t* option)
 			Beta[N_glob_tracks] = FlightPath[N_glob_tracks] / ToF[N_glob_tracks] / SPEED_OF_LIGHT;
 			Gamma[N_glob_tracks] = 1. / sqrt(1 - pow(Beta[N_glob_tracks], 2));
 			mdf_AoZ[N_glob_tracks] = PoQ[N_glob_tracks] / Beta[N_glob_tracks] / Gamma[N_glob_tracks] / AMU;
-			
+
 
 			delta_TY0 = TY0[N_glob_tracks] - (tin.f16_y-tin.f2_y)/(tin.f16_z - tin.f2_z);
 			if(delta_TY0<(-0.002) || delta_TY0>(0.004))
@@ -579,6 +579,7 @@ bool R3BTrackingS522::MakeOutgoingTracks()
 	{
 		auto f32 = static_cast<R3BFiberMAPMTHitData*>(fDataItems[DET_FI32]->At(i));
 		if(!IsGoodFiberHit(f32)) continue;
+		if(f32->GetTime()<7990 || f32->GetTime()>8040) return false;  
 		f32_point.SetXYZ(f32->GetX(), 0, 0); //cm
 		f32_point_i=f32_point;
 		TransformPoint(f32_point, &f32_angles, &f32_position);
@@ -595,55 +596,18 @@ bool R3BTrackingS522::MakeOutgoingTracks()
 			tr.f30_y = f30_point.Y();
 
 			//if(fabs(f32->GetTime_ns() - f30->GetTime_ns())>30) continue;
-
+			if(f30->GetTime()<7990 || f30->GetTime()>8040) return false;
 			//make combination with every hit in fibers 33 and 31
-			
-			   for (auto k = 0; k<fDataItems[DET_FI33]->GetEntriesFast(); ++k)
-			   {
-			   auto f33 = static_cast<R3BFiberMAPMTHitData*>(fDataItems[DET_FI33]->At(k));
-			   if(!IsGoodFiberHit(f33)) continue; //Messel side
 
-			//if(fabs(f32->GetTime_ns() - f33->GetTime_ns())>40) continue;
-
-			flast_point.SetXYZ(f33->GetX(), 0, 0); //cm
-			TransformPoint(flast_point, &f33_angles, &f33_position);
-			tr.last_x = flast_point.X();
-			tr.last_z = flast_point.Z();
-			angle_out = TMath::ATan((tr.last_x - tr.f32_x)/(tr.last_z - tr.f32_z)) * TMath::RadToDeg();
-			if(angle_out>(-10.) || angle_out<(-18.)) continue;
-			// We need to extrapolate Z position in f30 because it was used for Y measurement
-			// Define two (X,Z) points on the f30 plane:
-			//Now track every combination of upstream and downstream tracks 
-			f30_edge[0].SetXYZ(-1, 0, 0);
-			f30_edge[1].SetXYZ(1, 0, 0);
-			TransformPoint(f30_edge[0], &f30_angles, &f30_position);
-			TransformPoint(f30_edge[1], &f30_angles, &f30_position);
-			// Parameterize f30 plane
-			f30_slope = (f30_edge[1].X() - f30_edge[0].X()) / (f30_edge[1].Z() - f30_edge[0].Z());
-			f30_offset = f30_edge[0].X() - f30_slope * f30_edge[0].Z();
-			track_slope  = (tr.last_x - tr.f32_x) / (tr.last_z - tr.f32_z);
-			track_offset = (tr.last_x - track_slope * tr.last_z);
-			// Extrapolate final X and Z position in f30
-			tr.f30_z = (track_offset - f30_offset) / (f30_slope - track_slope);// extrapolated
-			tr.f30_x = (track_slope * tr.f30_z + track_offset);// extrapolated
-			N_out_tracks++;
-			tracks_out.push_back(tr);
-			if(N_out_tracks==N_glob_tracks/2) return true;
-			}
-
-
-			//make combination with every hit in fibers 33 and 31
-	/*		for (auto k = 0; k<fDataItems[DET_FI31]->GetEntriesFast(); ++k)
+			for (auto k = 0; k<fDataItems[DET_FI33]->GetEntriesFast(); ++k)
 			{
-				auto f31 = static_cast<R3BFiberMAPMTHitData*>(fDataItems[DET_FI31]->At(k));
-				if(!IsGoodFiberHit(f31)) continue; //Messel side
+				auto f33 = static_cast<R3BFiberMAPMTHitData*>(fDataItems[DET_FI33]->At(k));
+				if(!IsGoodFiberHit(f33)) continue; //Messel side
+				if(f33->GetTime()<7990 || f33->GetTime()>8040) return false;
+				//if(fabs(f32->GetTime_ns() - f33->GetTime_ns())>40) continue;
 
-				if((f32->GetTime_ns() - f31->GetTime_ns())>20 ||
-						(f32->GetTime_ns() - f31->GetTime_ns())<(-10) ) continue;
-
-				flast_point.SetXYZ(f31->GetX(), 0, 0); //cm
-				flast_point_i=flast_point;
-				TransformPoint(flast_point, &f31_angles, &f31_position);
+				flast_point.SetXYZ(f33->GetX(), 0, 0); //cm
+				TransformPoint(flast_point, &f33_angles, &f33_position);
 				tr.last_x = flast_point.X();
 				tr.last_z = flast_point.Z();
 				angle_out = TMath::ATan((tr.last_x - tr.f32_x)/(tr.last_z - tr.f32_z)) * TMath::RadToDeg();
@@ -666,6 +630,43 @@ bool R3BTrackingS522::MakeOutgoingTracks()
 				N_out_tracks++;
 				tracks_out.push_back(tr);
 				if(N_out_tracks==N_glob_tracks/2) return true;
+			}
+
+
+			//make combination with every hit in fibers 33 and 31
+			/*		for (auto k = 0; k<fDataItems[DET_FI31]->GetEntriesFast(); ++k)
+					{
+					auto f31 = static_cast<R3BFiberMAPMTHitData*>(fDataItems[DET_FI31]->At(k));
+					if(!IsGoodFiberHit(f31)) continue; //Messel side
+					if(f31->GetTime()<7990 && f31->GetTime()>8040) return;
+			//if((f32->GetTime_ns() - f31->GetTime_ns())>20 ||
+			(f32->GetTime_ns() - f31->GetTime_ns())<(-10) ) continue;
+
+			flast_point.SetXYZ(f31->GetX(), 0, 0); //cm
+			flast_point_i=flast_point;
+			TransformPoint(flast_point, &f31_angles, &f31_position);
+			tr.last_x = flast_point.X();
+			tr.last_z = flast_point.Z();
+			angle_out = TMath::ATan((tr.last_x - tr.f32_x)/(tr.last_z - tr.f32_z)) * TMath::RadToDeg();
+			if(angle_out>(-10.) || angle_out<(-18.)) continue;
+			// We need to extrapolate Z position in f30 because it was used for Y measurement
+			// Define two (X,Z) points on the f30 plane:
+			//Now track every combination of upstream and downstream tracks 
+			f30_edge[0].SetXYZ(-1, 0, 0);
+			f30_edge[1].SetXYZ(1, 0, 0);
+			TransformPoint(f30_edge[0], &f30_angles, &f30_position);
+			TransformPoint(f30_edge[1], &f30_angles, &f30_position);
+			// Parameterize f30 plane
+			f30_slope = (f30_edge[1].X() - f30_edge[0].X()) / (f30_edge[1].Z() - f30_edge[0].Z());
+			f30_offset = f30_edge[0].X() - f30_slope * f30_edge[0].Z();
+			track_slope  = (tr.last_x - tr.f32_x) / (tr.last_z - tr.f32_z);
+			track_offset = (tr.last_x - track_slope * tr.last_z);
+			// Extrapolate final X and Z position in f30
+			tr.f30_z = (track_offset - f30_offset) / (f30_slope - track_slope);// extrapolated
+			tr.f30_x = (track_slope * tr.f30_z + track_offset);// extrapolated
+			N_out_tracks++;
+			tracks_out.push_back(tr);
+			if(N_out_tracks==N_glob_tracks/2) return true;
 			}*/
 		}
 	}
