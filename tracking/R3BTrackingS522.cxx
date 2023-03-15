@@ -269,7 +269,7 @@ void R3BTrackingS522::Exec(Option_t* option)
 	auto frs_DataItems = fDataItems.at(FRS_DATA);
 	if(frs_DataItems->GetEntriesFast() < 1) return; 
 	auto frs_data = (R3BFrsData*)frs_DataItems->At(0);
-	//if(frs_data->GetBrho()<17 || frs_data->GetBrho()>18) return;
+	if(frs_data->GetBrho()<17 || frs_data->GetBrho()>18) return;
 	//if(frs_data->GetAq()<2.675 || frs_data->GetAq()>2.694) return;
 	//if(frs_data->GetZ()<5.2 || frs_data->GetZ()>6.7) return;
 	//cout << "\nGood event!\n";
@@ -300,7 +300,7 @@ void R3BTrackingS522::Exec(Option_t* option)
 	if(mul_f1>10 || mul_f2>10 || mul_f15>10 || mul_f16 >10) return;
 	//cout << "\nGood event111111!\n";
 	is_good_event = true;
-
+	//as++;
 	if (DoAlignment && mul_f1==1 && mul_f2==1 && mul_f32==1 && mul_f30==1 && mul_f31==1)
 	{
 		det_points align_data;
@@ -327,7 +327,7 @@ void R3BTrackingS522::Exec(Option_t* option)
 			mdf_data[7] = (tout.f30_y  - tin.f2_y)/(tout.f30_z - tin.f2_z);
 
 			// Calculate all required MDF values
-			PoQ[N_glob_tracks] = MDF_PoQ->MDF(mdf_data) * GladCurrent / GladReferenceCurrent;
+			PoQ[N_glob_tracks] = MDF_PoQ->MDF(mdf_data) * GladCurrent / GladReferenceCurrent;	
 			FlightPath[N_glob_tracks] = MDF_FlightPath->MDF(mdf_data);
 			TX0[N_glob_tracks] = MDF_TX0->MDF(mdf_data);
 			TX1[N_glob_tracks] = MDF_TX1->MDF(mdf_data);
@@ -416,7 +416,7 @@ void R3BTrackingS522::FinishEvent()
 
 void R3BTrackingS522::FinishTask()
 {
-	//cout<<"a-> "<<a<<endl;
+	//cout<<"a-> "<<as<<endl;
 	//cout<<"b-> "<<b<<endl;
 	//cout<<"c-> "<<c<<endl;
 	LOG(info) << "Processed " << fNEvents << " events\n\n";
@@ -512,7 +512,7 @@ bool R3BTrackingS522::MakeIncomingTracks()
 
 		for (auto & f1 : f1_hits){
 			auto f1_hit = static_cast<R3BFootHitData*>(fDataItems[FOOT_HITDATA]->At(f1));
-			f1_point.SetXYZ((-1.) * f1_hit->GetPosLab().X() * 0.1, 0, 0); //cm
+			f1_point.SetXYZ((-1.) * f1_hit->GetPosLab().X() * 0.1 , 0, 0); //cm
 			f1_point_i=f1_point;
 			TransformPoint(f1_point,  &f1_angles,  &f1_position);       
 			for (auto & f16 : f16_hits){
@@ -579,7 +579,7 @@ bool R3BTrackingS522::MakeOutgoingTracks()
 	{
 		auto f32 = static_cast<R3BFiberMAPMTHitData*>(fDataItems[DET_FI32]->At(i));
 		if(!IsGoodFiberHit(f32)) continue;
-		if(f32->GetTime()<7990 || f32->GetTime()>8040) return false;  
+		//if(f32->GetTime()<7990 || f32->GetTime()>8040) return false;  
 		f32_point.SetXYZ(f32->GetX(), 0, 0); //cm
 		f32_point_i=f32_point;
 		TransformPoint(f32_point, &f32_angles, &f32_position);
@@ -596,14 +596,14 @@ bool R3BTrackingS522::MakeOutgoingTracks()
 			tr.f30_y = f30_point.Y();
 
 			//if(fabs(f32->GetTime_ns() - f30->GetTime_ns())>30) continue;
-			if(f30->GetTime()<7990 || f30->GetTime()>8040) return false;
+			//if(f30->GetTime()<7990 || f30->GetTime()>8040) return false;
 			//make combination with every hit in fibers 33 and 31
 
 			for (auto k = 0; k<fDataItems[DET_FI33]->GetEntriesFast(); ++k)
 			{
 				auto f33 = static_cast<R3BFiberMAPMTHitData*>(fDataItems[DET_FI33]->At(k));
 				if(!IsGoodFiberHit(f33)) continue; //Messel side
-				if(f33->GetTime()<7990 || f33->GetTime()>8040) return false;
+				//if(f33->GetTime()<7990 || f33->GetTime()>8040) return false;
 				//if(fabs(f32->GetTime_ns() - f33->GetTime_ns())>40) continue;
 
 				flast_point.SetXYZ(f33->GetX(), 0, 0); //cm
@@ -611,7 +611,7 @@ bool R3BTrackingS522::MakeOutgoingTracks()
 				tr.last_x = flast_point.X();
 				tr.last_z = flast_point.Z();
 				angle_out = TMath::ATan((tr.last_x - tr.f32_x)/(tr.last_z - tr.f32_z)) * TMath::RadToDeg();
-				if(angle_out>(-10.) || angle_out<(-18.)) continue;
+				//if(angle_out>(-10.) || angle_out<(-18.)) continue;
 				// We need to extrapolate Z position in f30 because it was used for Y measurement
 				// Define two (X,Z) points on the f30 plane:
 				//Now track every combination of upstream and downstream tracks 
@@ -773,7 +773,7 @@ void R3BTrackingS522::Alignment()
 
 	// Now define minimizer
 	ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Migrad");
-	const UInt_t NVarsFunctor = 5; // number of the alignment offsets: (2 angles + 3 offsets) x 4 detectors
+	const UInt_t NVarsFunctor = 25; // number of the alignment offsets: (2 angles + 3 offsets) x 4 detectors
 	const double* xs={0};
 	double step[NVarsFunctor]={0};
 	double offset[NVarsFunctor]={0};
@@ -783,7 +783,7 @@ void R3BTrackingS522::Alignment()
 	char hname[100];
 
 	// For every detector: 3 Euler angles and 3 shifts
-	for (auto d = 0; d < 1; ++d)
+	for (auto d = 0; d < 5; ++d)
 	{
 		for (auto a = 0; a < 3; ++a) // angle shifts in rad
 		{
@@ -936,36 +936,31 @@ double R3BTrackingS522::AlignmentErrorS522(const double* par)
 		   cout<<"f2x_posoff_z-> "<<gMDFTrackerS522->f2_point_i.X()<<endl;
 		   cout<<"f2y_ang_x-> "<<gMDFTrackerS522->f2_point_i.Y()<<endl;
 		   cout<<"f2z_ang_y-> "<<gMDFTrackerS522->f2_point_i.Z()<<endl;
+		*/
 
-*/
+		gMDFTrackerS522->TransformPoint1(gMDFTrackerS522->f2_point_i,
+				gMDFTrackerS522->GetEulerAnglesFoot2() + gMDFTrackerS522->f2_ang_offset,
+				gMDFTrackerS522->GetPositionFoot2() + gMDFTrackerS522->f2_pos_offset);
 
-		gMDFTrackerS522->TransformPoint1(gMDFTrackerS522->f1_point_i,
-				gMDFTrackerS522->GetEulerAnglesFoot1() + gMDFTrackerS522->f1_ang_offset,
-				gMDFTrackerS522->GetPositionFoot1() + gMDFTrackerS522->f1_pos_offset);
+		gMDFTrackerS522->TransformPoint1(gMDFTrackerS522->f32_point_i,
+				gMDFTrackerS522->GetEulerAnglesFiber32() + gMDFTrackerS522->f32_ang_offset,
+				gMDFTrackerS522->GetPositionFiber32() + gMDFTrackerS522->f32_pos_offset);
 
-		/*	gMDFTrackerS522->TransformPoint1(gMDFTrackerS522->f2_point_i,
-			gMDFTrackerS522->GetEulerAnglesFoot2() + gMDFTrackerS522->f2_ang_offset,
-			gMDFTrackerS522->GetPositionFoot2() + gMDFTrackerS522->f2_pos_offset);
+		gMDFTrackerS522->TransformPoint1(gMDFTrackerS522->f30_point_i,
+				gMDFTrackerS522->GetEulerAnglesFiber30() + gMDFTrackerS522->f30_ang_offset,
+				gMDFTrackerS522->GetPositionFiber30() + gMDFTrackerS522->f30_pos_offset);
 
-			gMDFTrackerS522->TransformPoint1(gMDFTrackerS522->f32_point_i,
-			gMDFTrackerS522->GetEulerAnglesFiber32() + gMDFTrackerS522->f32_ang_offset,
-			gMDFTrackerS522->GetPositionFiber32() + gMDFTrackerS522->f32_pos_offset);
+		gMDFTrackerS522->TransformPoint1(gMDFTrackerS522->flast_point_i,
+				gMDFTrackerS522->GetEulerAnglesFiber31() + gMDFTrackerS522->flast_ang_offset,
+				gMDFTrackerS522->GetPositionFiber31() + gMDFTrackerS522->flast_pos_offset);
 
-			gMDFTrackerS522->TransformPoint1(gMDFTrackerS522->f30_point_i,
-			gMDFTrackerS522->GetEulerAnglesFiber30() + gMDFTrackerS522->f30_ang_offset,
-			gMDFTrackerS522->GetPositionFiber30() + gMDFTrackerS522->f30_pos_offset);
-
-			gMDFTrackerS522->TransformPoint1(gMDFTrackerS522->flast_point_i,
-			gMDFTrackerS522->GetEulerAnglesFiber31() + gMDFTrackerS522->flast_ang_offset,
-			gMDFTrackerS522->GetPositionFiber31() + gMDFTrackerS522->flast_pos_offset);
-
-			cout<<"f1_posoff_x-> "<<gMDFTrackerS522->f1_pos_offset.X()<<endl;
-			cout<<"f1_posoff_z-> "<<gMDFTrackerS522->f1_pos_offset.Z()<<endl;
-			cout<<"f2_posoff_y-> "<<gMDFTrackerS522->f2_pos_offset.Y()<<endl;
-			cout<<"f2_posoff_z-> "<<gMDFTrackerS522->f2_pos_offset.Z()<<endl;
-			cout<<"f1_ang_x-> "<<gMDFTrackerS522->f1_ang_offset.X()<<endl;
-			cout<<"f1_ang_x-> "<<gMDFTrackerS522->f1_ang_offset.Y()<<endl;
-			*/
+		/*cout<<"f1_posoff_x-> "<<gMDFTrackerS522->f1_pos_offset.X()<<endl;
+		  cout<<"f1_posoff_z-> "<<gMDFTrackerS522->f1_pos_offset.Z()<<endl;
+		  cout<<"f2_posoff_y-> "<<gMDFTrackerS522->f2_pos_offset.Y()<<endl;
+		  cout<<"f2_posoff_z-> "<<gMDFTrackerS522->f2_pos_offset.Z()<<endl;
+		  cout<<"f1_ang_x-> "<<gMDFTrackerS522->f1_ang_offset.X()<<endl;
+		  cout<<"f1_ang_x-> "<<gMDFTrackerS522->f1_ang_offset.Y()<<endl;
+         	  */
 
 		mdf_input[0] = gMDFTrackerS522->f2_point_i.Y();
 		mdf_input[1] = gMDFTrackerS522->f2_point_i.Z();

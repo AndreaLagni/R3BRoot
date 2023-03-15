@@ -42,7 +42,7 @@ R3BFootMapped2StripCal::R3BFootMapped2StripCal()
 // R3BFootMapped2StripCalPar: Standard Constructor --------------------------
 R3BFootMapped2StripCal::R3BFootMapped2StripCal(const TString& name, Int_t iVerbose)
     : FairTask(name, iVerbose)
-    , NumDets(16)
+    , NumDets(1)
     , NumStrips(640)
     , NumParams(2)
     , MaxSigma(5)

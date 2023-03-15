@@ -314,7 +314,9 @@ class R3BTrackingS522 : public FairTask
     UInt_t mul_f33;
     UInt_t mul_tofd;
     UInt_t mul_foot;
-
+    UInt_t as=0;
+    UInt_t b=0;
+    UInt_t c=0;
     Int_t Tpat;
     //Double_t ToF[N_glob_tracks_max];
     //Double_t Beta[N_glob_tracks_max];
