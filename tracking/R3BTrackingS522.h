@@ -285,20 +285,20 @@ class R3BTrackingS522 : public FairTask
     Int_t maxevent;
     Double_t GladCurrent;
     Double_t GladReferenceCurrent;
-    Double_t reference_PoQ;
+    Double_t reference_PoQ ;
     Bool_t DoAlignment;
     Double_t tof_offset; // ns
 
     // Energy range in FOOT 
-    Double_t FootEnergyMin;
-    Double_t FootEnergyMax;
+    Double_t FootEnergyMin = 0;
+    Double_t FootEnergyMax = 0;
 
     // Cut on fiber hit energy set by SetFiberEnergyMinMax():
-    Double_t FiberEnergyMin;
-    Double_t FiberEnergyMax;
+    Double_t FiberEnergyMin = 0;
+    Double_t FiberEnergyMax = 0;
 
     TTree tree_out;
-    UInt_t N_glob_tracks;
+    UInt_t N_glob_tracks ;
     UInt_t N_in_tracks;
     UInt_t N_out_tracks;
     static constexpr UInt_t N_glob_tracks_max = 10000000;
@@ -317,7 +317,7 @@ class R3BTrackingS522 : public FairTask
     UInt_t as=0;
     UInt_t b=0;
     UInt_t c=0;
-    Int_t Tpat;
+    Int_t Tpat = 0;
     //Double_t ToF[N_glob_tracks_max];
     //Double_t Beta[N_glob_tracks_max];
     //Double_t Gamma[N_glob_tracks_max];
@@ -332,13 +332,13 @@ class R3BTrackingS522 : public FairTask
     Double_t Gamma[N_glob_tracks_max];
     Double_t mdf_AoZ[N_glob_tracks_max];
 
-    Float_t  m0_X;
-    Float_t  m0_Y;
-    Float_t  m0_Z;
+    Float_t  m0_X = -999;
+    Float_t  m0_Y = -999;
+    Float_t  m0_Z = -999;
 
-    Float_t  m1_X;
-    Float_t  m1_Y;
-    Float_t  m1_Z;
+    Float_t  m1_X = -999;
+    Float_t  m1_Y = -999;
+    Float_t  m1_Z = -999;
 
     Float_t vertex_foot_X[N_glob_tracks_max];
     Float_t vertex_foot_Y[N_glob_tracks_max];
@@ -387,6 +387,8 @@ class R3BTrackingS522 : public FairTask
     Float_t last_Z[N_glob_tracks_max];
     Float_t last_Q[N_glob_tracks_max];
     Float_t last_T[N_glob_tracks_max];
+    Float_t angle_xd[N_glob_tracks_max];
+    Float_t angle_yd[N_glob_tracks_max];
 
     Float_t tofd_X[N_glob_tracks_max];
     Float_t tofd_Y[N_glob_tracks_max];

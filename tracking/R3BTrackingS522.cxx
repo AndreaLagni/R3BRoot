@@ -213,6 +213,9 @@ InitStatus R3BTrackingS522::Init()
 	tree_out.Branch("last_X",    last_X,  "last_X[N_glob_tracks]/F");
 	tree_out.Branch("last_Y",    last_Y,  "last_Y[N_glob_tracks]/F");
 	tree_out.Branch("last_Z",    last_Z,  "last_Z[N_glob_tracks]/F");
+	tree_out.Branch("angle_X",    angle_xd,  "angle_xd[N_glob_tracks]/F");
+	tree_out.Branch("angle_Y",    angle_yd,  "angle_yd[N_glob_tracks]/F");
+
 
 	tree_out.Branch("tofd_Q",    tofd_Q,  "tofd_Q[N_glob_tracks]/F");
 
@@ -224,12 +227,79 @@ InitStatus R3BTrackingS522::Init()
 
 void R3BTrackingS522::Exec(Option_t* option)
 {
-	if (fNEvents / 1000. == (int)fNEvents / 1000)
-		std::cout << "\rEvents: " << fNEvents << " / " << maxevent << " (" << (int)(fNEvents * 100. / maxevent)
-			<< " %) " << std::flush;
+	//if (fNEvents / 1000. == (int)fNEvents / 1000)
+	//std::cout << "\rEvents: " << fNEvents << " / " << maxevent << " (" << (int)(fNEvents * 100. / maxevent)
+	//	<< " %) " << std::flush;
 	FairRootManager* mgr = FairRootManager::Instance();
 	R3BLOG_IF(fatal, NULL == mgr, "FairRootManager not found");
 	fNEvents += 1;
+	/*	for (int u=0; u<N_glob_tracks_max; u++){
+		PoQ[u]=-999.;;
+		FlightPath[u]=-999;
+		ToF[u]=-999;
+		TX0[u]=-999;
+		TX1[u]=-999;
+		TY0[u]=-999;
+		TY1[u]=-999;
+		Beta[u]=-999;
+		Gamma[u]=-999;
+		mdf_AoZ[u]=-999;
+		vertex_foot_X[u]=-999;
+		vertex_foot_Y[u]=-999;
+		vertex_mwpc_X[u]=-999;
+		vertex_mwpc_Y[u]=-999;
+
+		f1_X[u]=-999;
+		f1_Y[u]=-999;
+		f1_Z[u]=-999;
+		f1_Q[u]=-999;
+		f1_T[u]=-999;
+
+		f2_X[u]=-999;
+		f2_Y[u]=-999;
+		f2_Z[u]=-999;
+		f2_Q[u]=-999;
+		f2_T[u]=-999;
+
+		f15_X[u]=-999;
+		f15_Y[u]=-999;
+		f15_Z[u]=-999;
+		f15_Q[u]=-999;
+		f15_T[u]=-999;
+
+		f16_X[u]=-999;
+		f16_Y[u]=-999;
+		f16_Z[u]=-999;
+		f16_Q[u]=-999;
+		f16_T[u]=-999;
+
+		f30_X[u]=-999;
+		f30_Y[u]=-999;
+		f30_Z[u]=-999;
+		f30_Q[u]=-999;
+		f30_T[u]=-999;
+
+		f32_X[u]=-999;
+		f32_Y[u]=-999;
+		f32_Z[u]=-999;
+		f32_Q[u]=-999;
+		f32_T[u]=-999;
+
+		last_X[u]=-999;
+		last_Y[u]=-999;
+		last_Z[u]=-999;
+		last_Q[u]=-999;
+		last_T[u]=-999;
+
+		tofd_X[u]=-999;
+		tofd_Y[u]=-999;
+		tofd_Z[u]=-999;
+		tofd_Q[u]=-999;
+		tofd_T[u]=-999;
+		tofd_ID[u]=-999;
+
+		}
+		*/
 	N_glob_tracks=0;
 	N_in_tracks=0;
 	N_out_tracks=0;
@@ -271,7 +341,7 @@ void R3BTrackingS522::Exec(Option_t* option)
 	auto frs_data = (R3BFrsData*)frs_DataItems->At(0);
 	if(frs_data->GetBrho()<17 || frs_data->GetBrho()>18) return;
 	//if(frs_data->GetAq()<2.675 || frs_data->GetAq()>2.694) return;
-	//if(frs_data->GetZ()<5.2 || frs_data->GetZ()>6.7) return;
+	if(frs_data->GetZ()<5.2 || frs_data->GetZ()>6.7) return;
 	//cout << "\nGood event!\n";
 	//------ Get TOFD data 
 	R3BTofdHitData* tofd_hit{};
@@ -301,19 +371,19 @@ void R3BTrackingS522::Exec(Option_t* option)
 	//cout << "\nGood event111111!\n";
 	is_good_event = true;
 	//as++;
-	if (DoAlignment && mul_f1==1 && mul_f2==1 && mul_f32==1 && mul_f30==1 && mul_f31==1)
-	{
+	/*	if (DoAlignment && mul_f1==1 && mul_f2==1 && mul_f32==1 && mul_f30==1 && mul_f31==1)
+		{
 		det_points align_data;
 		align_data.f1.SetXYZ(f1_point_i.X(),0, f1_point_i.Z());
-		align_data.f2.SetXYZ(0, f2_point.Y(), f2_point.Z());
-		align_data.f30.SetXYZ(0, f30_point.Y(), f30_point.Z());
-		align_data.f32.SetXYZ(f32_point.X(),0, f32_point.Z());
-		align_data.flast.SetXYZ(flast_point.X(),0, flast_point.Z());
+		align_data.f2.SetXYZ(0, f2_point_i.Y(), f2_point_i.Z());
+		align_data.f30.SetXYZ(0, f30_point_i.Y(), f30_point_i.Z());
+		align_data.f32.SetXYZ(f32_point_i.X(),0, f32_point_i.Z());
+		align_data.flast.SetXYZ(flast_point_i.X(),0, flast_point_i.Z());
 		det_points_vec.push_back(align_data);
-	}
-
+		}
+		*/
 	double delta_TY0, delta_TX0;
-	for (auto & tin : tracks_in){
+       for (auto & tin : tracks_in){
 		for (auto & tout : tracks_out){
 
 			//preserve the order, it is expected by the MDF function!
@@ -338,7 +408,6 @@ void R3BTrackingS522::Exec(Option_t* option)
 			//----- Calculate Beta
 			// ToF = tofd_hit->GetTof() + tof_offset;
 			ToF[N_glob_tracks] = FlightPath[N_glob_tracks] / frs_data->GetBeta() / SPEED_OF_LIGHT;
-
 			Beta[N_glob_tracks] = FlightPath[N_glob_tracks] / ToF[N_glob_tracks] / SPEED_OF_LIGHT;
 			Gamma[N_glob_tracks] = 1. / sqrt(1 - pow(Beta[N_glob_tracks], 2));
 			mdf_AoZ[N_glob_tracks] = PoQ[N_glob_tracks] / Beta[N_glob_tracks] / Gamma[N_glob_tracks] / AMU;
@@ -350,8 +419,8 @@ void R3BTrackingS522::Exec(Option_t* option)
 				continue;
 
 			delta_TX0 = TX0[N_glob_tracks] - (tin.f15_x - tin.f1_x)/(tin.f15_z-tin.f1_z);
-			if(delta_TX0<(-0.029) || delta_TX0>(-0.023))//f31
-				//if(delta_TX0<(-0.02) || delta_TX0>(-0.012))//f33
+			//if(delta_TX0<(-0.029) || delta_TX0>(-0.023))//f31
+				if(delta_TX0<(-0.02) || delta_TX0>(-0.012))//f33
 				//if(delta_TX0<(-0.022) || delta_TX0>(-0.012))//f31 run 159
 				continue;
 
@@ -378,16 +447,32 @@ void R3BTrackingS522::Exec(Option_t* option)
 
 			tofd_Q[N_glob_tracks] = tofd_hit->GetEloss();
 
+
+			if (DoAlignment && mul_f1==1 && mul_f2==1 && mul_f32==1 && mul_f30==1 && mul_f31==1)
+			{
+				det_points align_data;
+				align_data.f1.SetXYZ(tin.f1_x,0, tin.f1_z);
+				align_data.f2.SetXYZ(0, tin.f2_y, tin.f2_z);
+				align_data.f30.SetXYZ(0, tout.f30_y, tout.f30_z);
+				align_data.f32.SetXYZ(tout.f32_x,0, tout.f32_z);
+				align_data.flast.SetXYZ(tout.last_x,0, tout.last_z);
+				det_points_vec.push_back(align_data);
+			}
+
 			N_glob_tracks++;
 
 			if(N_glob_tracks == N_glob_tracks_max) return;
 		}
 	}
-	return;
+		return;
 }
 
 void R3BTrackingS522::FinishEvent()
 {
+		//if(is_good_event) {
+	//cout<<"Good event***"<<endl;	    
+	tree_out.Fill();
+//}
 	for (auto& DataItem : fDataItems)
 	{
 		DataItem->Clear();
@@ -399,11 +484,8 @@ void R3BTrackingS522::FinishEvent()
 	f16_hits.clear();
 	tracks_in.clear();
 	tracks_out.clear();
-	if(is_good_event) {
-		//cout<<"Good event***"<<endl;	    
-		tree_out.Fill();
-	}
-
+	//Fill tree senza condizione
+	//cout<<"FINEEE"<<endl;
 	//cout << "\n\nMul m0: " << mul_m0;
 	//cout << "\nMul m1: " << mul_m1;
 	//cout << "\nMul foot: " << mul_foot;
@@ -422,6 +504,7 @@ void R3BTrackingS522::FinishTask()
 	LOG(info) << "Processed " << fNEvents << " events\n\n";
 	if (DoAlignment) Alignment();
 	tree_out.Write();
+	//cout<<"WRITE"<<endl;
 	//cout << "\n\n------- Statisitcs summary --------- ";
 }
 
@@ -483,7 +566,12 @@ bool R3BTrackingS522::MakeIncomingTracks()
 	N_in_tracks=0;
 	if(!SortFootData()) return false;//at least 1 hit in every FOOT
 	TVector3 vertex_mwpc, vertex_foot;//projection to the center of the target (0,0,0)
-	double tx_in, ty_in, dx_vertex, dy_vertex;
+	double tx_in = -999;
+	double ty_in = -999; 
+	double dx_vertex = -999;
+	double dy_vertex = -999;
+	double dx_angle = -999;
+	double dy_angle = -999;	
 	Track tr;
 	//Get MWPC hits, for now only first hit
 	auto m0_hit = static_cast<R3BMwpcHitData*>(fDataItems[MWPC0_HITDATA]->At(0));
@@ -534,9 +622,12 @@ bool R3BTrackingS522::MakeIncomingTracks()
 					//Condition on the vertex matching
 					dx_vertex = vertex_foot.X() - vertex_mwpc.X();
 					dy_vertex = vertex_foot.Y() - vertex_mwpc.Y();
-
+					dx_angle = tr.tx0 - tx_in;
+					dy_angle = tr.ty0 - ty_in;
 					//s522
+					if(dx_angle >-999 && dy_angle >-999 && dx_vertex >-999 && dy_vertex >-999){
 					if(dx_vertex<1 || dx_vertex>2 || dy_vertex<(-2.5) || dy_vertex>(-1.5)) continue;
+					if(dy_angle<-0.03 || dy_angle>-0.005 || dx_angle<-0.01 || dx_angle>0.02) continue;
 					//s509
 					//if(dx_vertex<1 || dx_vertex>2 || dy_vertex<(-1.9) || dy_vertex>(-1.)) continue;
 
@@ -555,8 +646,11 @@ bool R3BTrackingS522::MakeIncomingTracks()
 					vertex_mwpc_Y[N_in_tracks] = vertex_mwpc.Y();
 					vertex_foot_X[N_in_tracks] = vertex_foot.X();
 					vertex_foot_Y[N_in_tracks] = vertex_foot.Y();
+					angle_yd[N_in_tracks] = dy_angle;
+					angle_xd[N_in_tracks] = dx_angle;
 					N_in_tracks++;
-					if(N_in_tracks==N_glob_tracks_max/2) return true;
+					//if(N_in_tracks==N_glob_tracks_max/2) return true;
+					}	
 				}
 			}
 		}
@@ -573,13 +667,17 @@ bool R3BTrackingS522::MakeOutgoingTracks()
 	tracks_out.clear();
 	Track tr;
 	N_out_tracks=0;
-	double angle_out, f30_slope, f30_offset, track_slope, track_offset;
+	double angle_out = -999;
+	double f30_slope = -999; 
+	double f30_offset = -999;
+	double track_slope = -999;
+	double track_offset = -999;
 	TVector3 f30_edge[2];//to extract z and x in f30
 	for (auto i=0; i<fDataItems[DET_FI32]->GetEntriesFast(); ++i)
 	{
 		auto f32 = static_cast<R3BFiberMAPMTHitData*>(fDataItems[DET_FI32]->At(i));
 		if(!IsGoodFiberHit(f32)) continue;
-		//if(f32->GetTime()<7990 || f32->GetTime()>8040) return false;  
+		if(f32->GetTime()<7990 || f32->GetTime()>8040) return false;  
 		f32_point.SetXYZ(f32->GetX(), 0, 0); //cm
 		f32_point_i=f32_point;
 		TransformPoint(f32_point, &f32_angles, &f32_position);
@@ -595,23 +693,23 @@ bool R3BTrackingS522::MakeOutgoingTracks()
 			TransformPoint(f30_point, &f30_angles, &f30_position);
 			tr.f30_y = f30_point.Y();
 
-			//if(fabs(f32->GetTime_ns() - f30->GetTime_ns())>30) continue;
-			//if(f30->GetTime()<7990 || f30->GetTime()>8040) return false;
+			if(fabs(f32->GetTime_ns() - f30->GetTime_ns())>30) continue;
+			if(f30->GetTime()<7990 || f30->GetTime()>8040) return false;
+
 			//make combination with every hit in fibers 33 and 31
 
 			for (auto k = 0; k<fDataItems[DET_FI33]->GetEntriesFast(); ++k)
 			{
 				auto f33 = static_cast<R3BFiberMAPMTHitData*>(fDataItems[DET_FI33]->At(k));
 				if(!IsGoodFiberHit(f33)) continue; //Messel side
-				//if(f33->GetTime()<7990 || f33->GetTime()>8040) return false;
-				//if(fabs(f32->GetTime_ns() - f33->GetTime_ns())>40) continue;
-
+				if(f33->GetTime()<7990 || f33->GetTime()>8040) return false;;
+				if((fabs(f32->GetTime_ns() - f33->GetTime_ns())>30) && (fabs(f32->GetTime_ns() - f33->GetTime_ns())<-5)) continue;
 				flast_point.SetXYZ(f33->GetX(), 0, 0); //cm
 				TransformPoint(flast_point, &f33_angles, &f33_position);
 				tr.last_x = flast_point.X();
 				tr.last_z = flast_point.Z();
 				angle_out = TMath::ATan((tr.last_x - tr.f32_x)/(tr.last_z - tr.f32_z)) * TMath::RadToDeg();
-				//if(angle_out>(-10.) || angle_out<(-18.)) continue;
+				if(angle_out>(-10.) || angle_out<(-18.)) continue;
 				// We need to extrapolate Z position in f30 because it was used for Y measurement
 				// Define two (X,Z) points on the f30 plane:
 				//Now track every combination of upstream and downstream tracks 
@@ -629,19 +727,17 @@ bool R3BTrackingS522::MakeOutgoingTracks()
 				tr.f30_x = (track_slope * tr.f30_z + track_offset);// extrapolated
 				N_out_tracks++;
 				tracks_out.push_back(tr);
-				if(N_out_tracks==N_glob_tracks/2) return true;
+				//if(N_out_tracks==N_glob_tracks/2) return true;
 			}
 
-
+/*
 			//make combination with every hit in fibers 33 and 31
-			/*		for (auto k = 0; k<fDataItems[DET_FI31]->GetEntriesFast(); ++k)
-					{
-					auto f31 = static_cast<R3BFiberMAPMTHitData*>(fDataItems[DET_FI31]->At(k));
-					if(!IsGoodFiberHit(f31)) continue; //Messel side
-					if(f31->GetTime()<7990 && f31->GetTime()>8040) return;
-			//if((f32->GetTime_ns() - f31->GetTime_ns())>20 ||
-			(f32->GetTime_ns() - f31->GetTime_ns())<(-10) ) continue;
-
+				for (auto k = 0; k<fDataItems[DET_FI31]->GetEntriesFast(); ++k)
+				{
+				auto f31 = static_cast<R3BFiberMAPMTHitData*>(fDataItems[DET_FI31]->At(k));
+				if(!IsGoodFiberHit(f31)) continue; //Messel side
+			//if(f31->GetTime()<7990 && f31->GetTime()>8040) return;
+			//if((f32->GetTime_ns() - f31->GetTime_ns())>20 ||(f32->GetTime_ns() - f31->GetTime_ns())<(-10) ) continue;
 			flast_point.SetXYZ(f31->GetX(), 0, 0); //cm
 			flast_point_i=flast_point;
 			TransformPoint(flast_point, &f31_angles, &f31_position);
@@ -773,7 +869,7 @@ void R3BTrackingS522::Alignment()
 
 	// Now define minimizer
 	ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Migrad");
-	const UInt_t NVarsFunctor = 25; // number of the alignment offsets: (2 angles + 3 offsets) x 4 detectors
+	const UInt_t NVarsFunctor = 20; // number of the alignment offsets: (2 angles + 3 offsets) x 4 detectors
 	const double* xs={0};
 	double step[NVarsFunctor]={0};
 	double offset[NVarsFunctor]={0};
@@ -787,15 +883,15 @@ void R3BTrackingS522::Alignment()
 	{
 		for (auto a = 0; a < 3; ++a) // angle shifts in rad
 		{
-			min_offset[d * 5 + a] = -0.04;
-			max_offset[d * 5 + a] = 0.04;
-			step[d * 5 + a] = 0.001;
+			min_offset[d * 4 + a] = -0.1;
+			max_offset[d * 4 + a] = 0.1;
+			step[d * 4 + a] = 0.001;
 		}
-		for (auto o = 0; o < 2; ++o) // position shifts in cm
+		for (auto o = 0; o < 1; ++o) // position shifts in cm
 		{
-			min_offset[d * 5 + 3 + o] = -2;
-			max_offset[d * 5 + 3 + o] = 2;
-			step[d * 5 + 3 + o] = 0.01; //Valerii
+			min_offset[d * 4 + 3 + o] = -10;
+			max_offset[d * 4 + 3 + o] = 10;
+			step[d * 4 + 3 + o] = 0.01; //Valerii
 			//step[d * 5 + 2 + o] = 0.01;
 		}
 	}
@@ -810,7 +906,7 @@ void R3BTrackingS522::Alignment()
 	Double_t precision = 1e-10; // 0 - default precision will be automaticalle determined
 	Double_t tolerance = 0.2;
 	minimizer->SetMaxFunctionCalls(1000000000); // for Minuit/Minuit2
-	minimizer->SetMaxIterations(100);           // for GSL
+	minimizer->SetMaxIterations(3);           // for GSL
 	minimizer->SetTolerance(tolerance);
 	minimizer->SetPrecision(precision);
 	minimizer->SetPrintLevel(2);
@@ -822,13 +918,13 @@ void R3BTrackingS522::Alignment()
 	UInt_t i = 0;
 	Int_t bs = 0;
 	bool good_minimum = false;
-	while (bs < 100) // running several minimizations
+	while (bs < 3) // running several minimizations
 	{	
 		minimizer->Clear();
 		for (i = 0; i < NVarsFunctor; i++) // sampling +=50% from limits
 		{
 			offset[i] = gRandom->Uniform(min_offset[i] * 0.5, max_offset[i] * 0.5);
-			cout<<"Off--> "<<offset[i]<<endl;
+			//cout<<"Off--> "<<offset[i]<<endl;
 			minimizer->SetVariable(i, Form("par%d", i), offset[i], step[i]);
 			minimizer->SetVariableLimits(i, min_offset[i], max_offset[i]);	
 
@@ -840,9 +936,9 @@ void R3BTrackingS522::Alignment()
 		// Check if all paramters are "far" from limits
 		for (i = 0; i < NVarsFunctor; i++)
 		{
-			cout<<"/n cond1--> "<<fabs((xs[i] - min_offset[i]) / min_offset[i])<<" less then 0.1 "<<min_offset[i]<<" "<<xs[i]<<endl;
+			//cout<<"/n cond1--> "<<fabs((xs[i] - min_offset[i]) / min_offset[i])<<" less then 0.1 "<<min_offset[i]<<" "<<xs[i]<<endl;
 
-			cout<<"cond2--> "<<fabs((max_offset[i] -xs[i]) / max_offset[i])<<" less then 0.1 "<<max_offset[i]<<" "<<xs[i]<<endl;
+			//cout<<"cond2--> "<<fabs((max_offset[i] -xs[i]) / max_offset[i])<<" less then 0.1 "<<max_offset[i]<<" "<<xs[i]<<endl;
 
 			if (fabs((xs[i] - min_offset[i]) / min_offset[i]) < 0.1 ||
 					fabs((max_offset[i] - xs[i]) / max_offset[i]) < 0.1)
@@ -897,23 +993,20 @@ double R3BTrackingS522::AlignmentErrorS522(const double* par)
 {
 
 	gMDFTrackerS522->f1_ang_offset.SetXYZ(par[0], par[1], par[2]);
-	gMDFTrackerS522->f1_pos_offset.SetXYZ(par[3], 0 , par[4]);
+	gMDFTrackerS522->f1_pos_offset.SetXYZ(par[3], 0 , 0);
 
+	gMDFTrackerS522->f2_ang_offset.SetXYZ(par[4], par[5], par[6]);
+	gMDFTrackerS522->f2_pos_offset.SetXYZ(0, par[7], 0);
 
-	for(int i=0; i<5; i++){cout<<"Par-> "<<par[i]<<endl;}
+	gMDFTrackerS522->f32_ang_offset.SetXYZ(par[8], par[9], par[10]);
+	gMDFTrackerS522->f32_pos_offset.SetXYZ(par[11], 0, 0);
 
-	/*	gMDFTrackerS522->f2_ang_offset.SetXYZ(par[5], par[6], par[7]);
-		gMDFTrackerS522->f2_pos_offset.SetXYZ(0, par[8], par[9]);
+	gMDFTrackerS522->f30_ang_offset.SetXYZ(par[12], par[13], par[14]);
+	gMDFTrackerS522->f30_pos_offset.SetXYZ(0, par[15], 0);
 
-		gMDFTrackerS522->f32_ang_offset.SetXYZ(par[10], par[11], par[12]);
-		gMDFTrackerS522->f32_pos_offset.SetXYZ(par[13], 0, par[14]);
+	gMDFTrackerS522->flast_ang_offset.SetXYZ(par[16], par[17], par[18]);
+	gMDFTrackerS522->flast_pos_offset.SetXYZ(par[19], 0, 0);
 
-		gMDFTrackerS522->f30_ang_offset.SetXYZ(par[15], par[16], par[17]);
-		gMDFTrackerS522->f30_pos_offset.SetXYZ(0, par[18], par[19]);
-
-		gMDFTrackerS522->flast_ang_offset.SetXYZ(par[20], par[21], par[22]);
-		gMDFTrackerS522->flast_pos_offset.SetXYZ(par[23], 0, par[24]);
-		*/
 
 	Double_t mdf_input[8]; // data container for the MDF function
 
@@ -936,23 +1029,26 @@ double R3BTrackingS522::AlignmentErrorS522(const double* par)
 		   cout<<"f2x_posoff_z-> "<<gMDFTrackerS522->f2_point_i.X()<<endl;
 		   cout<<"f2y_ang_x-> "<<gMDFTrackerS522->f2_point_i.Y()<<endl;
 		   cout<<"f2z_ang_y-> "<<gMDFTrackerS522->f2_point_i.Z()<<endl;
-		*/
+		   */
+		gMDFTrackerS522->TransformPoint1(gMDFTrackerS522->f1_point_i,
+				/*gMDFTrackerS522->GetEulerAnglesFoot1() + */gMDFTrackerS522->f1_ang_offset,
+				/*gMDFTrackerS522->GetPositionFoot1() +  */gMDFTrackerS522->f1_pos_offset);
 
 		gMDFTrackerS522->TransformPoint1(gMDFTrackerS522->f2_point_i,
-				gMDFTrackerS522->GetEulerAnglesFoot2() + gMDFTrackerS522->f2_ang_offset,
-				gMDFTrackerS522->GetPositionFoot2() + gMDFTrackerS522->f2_pos_offset);
+				/*gMDFTrackerS522->GetEulerAnglesFoot2() + */gMDFTrackerS522->f2_ang_offset,
+				/*gMDFTrackerS522->GetPositionFoot2() + */gMDFTrackerS522->f2_pos_offset);
 
 		gMDFTrackerS522->TransformPoint1(gMDFTrackerS522->f32_point_i,
-				gMDFTrackerS522->GetEulerAnglesFiber32() + gMDFTrackerS522->f32_ang_offset,
-				gMDFTrackerS522->GetPositionFiber32() + gMDFTrackerS522->f32_pos_offset);
+				/*gMDFTrackerS522->GetEulerAnglesFiber32() +*/ gMDFTrackerS522->f32_ang_offset,
+				/*gMDFTrackerS522->GetPositionFiber32() + */gMDFTrackerS522->f32_pos_offset);
 
 		gMDFTrackerS522->TransformPoint1(gMDFTrackerS522->f30_point_i,
-				gMDFTrackerS522->GetEulerAnglesFiber30() + gMDFTrackerS522->f30_ang_offset,
-				gMDFTrackerS522->GetPositionFiber30() + gMDFTrackerS522->f30_pos_offset);
+				/*gMDFTrackerS522->GetEulerAnglesFiber30() + */gMDFTrackerS522->f30_ang_offset,
+				/*gMDFTrackerS522->GetPositionFiber30() + */gMDFTrackerS522->f30_pos_offset);
 
 		gMDFTrackerS522->TransformPoint1(gMDFTrackerS522->flast_point_i,
-				gMDFTrackerS522->GetEulerAnglesFiber31() + gMDFTrackerS522->flast_ang_offset,
-				gMDFTrackerS522->GetPositionFiber31() + gMDFTrackerS522->flast_pos_offset);
+				/*gMDFTrackerS522->GetEulerAnglesFiber31() + */gMDFTrackerS522->flast_ang_offset,
+				/*gMDFTrackerS522->GetPositionFiber31() + */gMDFTrackerS522->flast_pos_offset);
 
 		/*cout<<"f1_posoff_x-> "<<gMDFTrackerS522->f1_pos_offset.X()<<endl;
 		  cout<<"f1_posoff_z-> "<<gMDFTrackerS522->f1_pos_offset.Z()<<endl;
@@ -960,7 +1056,7 @@ double R3BTrackingS522::AlignmentErrorS522(const double* par)
 		  cout<<"f2_posoff_z-> "<<gMDFTrackerS522->f2_pos_offset.Z()<<endl;
 		  cout<<"f1_ang_x-> "<<gMDFTrackerS522->f1_ang_offset.X()<<endl;
 		  cout<<"f1_ang_x-> "<<gMDFTrackerS522->f1_ang_offset.Y()<<endl;
-         	  */
+		  */
 
 		mdf_input[0] = gMDFTrackerS522->f2_point_i.Y();
 		mdf_input[1] = gMDFTrackerS522->f2_point_i.Z();
@@ -971,13 +1067,13 @@ double R3BTrackingS522::AlignmentErrorS522(const double* par)
 		mdf_input[6] = (gMDFTrackerS522->flast_point_i.X() - mdf_input[4]) / (gMDFTrackerS522->flast_point_i.Z() - mdf_input[5]);
 		mdf_input[7] = (gMDFTrackerS522->f30_point_i.Y() - mdf_input[0]) / (gMDFTrackerS522->f30_point_i.Z() - mdf_input[1]);
 		v2 += pow((gMDFTrackerS522->Get_MDF_PoQ()->MDF(mdf_input) - gMDFTrackerS522->GetReferencePoQ()), 2);
-		//cout<<"MDF_PoQ "<<gMDFTrackerS522->Get_MDF_PoQ()->MDF(mdf_input)<<"  "<<" Ref_PoQ "<<gMDFTrackerS522->GetReferencePoQ()<<endl;
+		cout<<"MDF_PoQ "<<gMDFTrackerS522->Get_MDF_PoQ()->MDF(mdf_input)-gMDFTrackerS522->GetReferencePoQ()<<endl;
 		counter++;
 	}
 	v2 /= counter;
 	v = sqrt(v2);
-	//	std::cout << "\nReturning error: " << v;
-	//for(int i=0; i<25; i++){cout<<"Par-> "<<par[i]<<endl;}
+	std::cout << "\nReturning error: " << v;
+	for(int i=0; i<25; i++){cout<<"Par-> "<<par[i]<<endl;}
 	return v;
 
 }
