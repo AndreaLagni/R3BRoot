@@ -24,7 +24,7 @@
 
 #include "R3BMCTrack.h"
 #include "R3BMDFWrapper.h"
-#include "R3BTrack.h"
+#include "R3BTrackS522.h"
 
 #include "FairLogger.h"
 #include "FairRootManager.h"
@@ -69,7 +69,7 @@ R3BTrackingS522::R3BTrackingS522(const char* name, Int_t iVerbose)
 	, fNEvents(0)
 	, maxevent(0)
 	  , DoAlignment(false)
-	, fTrackItems(new TClonesArray("R3BTrack"))
+	, fTrackItems(new TClonesArray("R3BTrackS522"))
 	, reference_PoQ(0.)
 	, GladCurrent(-1)
 	, GladReferenceCurrent(-1)
@@ -112,7 +112,7 @@ InitStatus R3BTrackingS522::Init()
 		{
 			R3BLOG(fatal, Form("\n\n Cannot find tree branch %s \n\n", fDetectorNames[det]));
 		}
-	//	mgr->Register(Form("%s", fDetectorNames[det]), std::to_string(det).c_str(), fDataItems[det], true);
+		mgr->Register(Form("%s", fDetectorNames[det]), std::to_string(det).c_str(), fDataItems[det], true);
 	}
 	// check if all cuts are properly set
 	if (GladCurrent < 0 || GladReferenceCurrent < 0 || 
@@ -408,7 +408,11 @@ cout<<"Pallina"<<endl;
 
 			tofd_Q[N_glob_tracks] = tofd_hit->GetEloss();
 
-
+			// Final momenutm (PoQ) vector
+			TVector3 vec_foot(f1_X[N_glob_tracks], 0, f1_Z[N_glob_tracks]);
+			TVector3 vec_PoQ(TX0[N_glob_tracks], TY0[N_glob_tracks], 1);
+			vec_PoQ.SetMag(PoQ[N_glob_tracks]);
+			AddTrackData(vec_foot, vec_PoQ, tofd_Q[N_glob_tracks] , mdf_AoZ[N_glob_tracks], ToF[N_glob_tracks], FlightPath[N_glob_tracks]);
 			if (DoAlignment && mul_f1==1 && mul_f2==1 && mul_f32==1 && mul_f30==1 && mul_f31==1)
 			{
 				det_points align_data;
@@ -793,12 +797,12 @@ void R3BTrackingS522::TransformPoint1(TVector3& point1, TVector3 rot1, TVector3 
 	return;
 }
 
-R3BTrack* R3BTrackingS522::AddTrackData(TVector3 mw, TVector3 poq, Double_t charge, Double_t aoz)
+R3BTrackS522* R3BTrackingS522::AddTrackData(TVector3 mw, TVector3 poq, Double_t charge, Double_t aoz, Double_t ToFm, Double_t FlightPathm)
 {
 	// Filling output track info
 	TClonesArray& clref = *fTrackItems;
 	Int_t size = clref.GetEntriesFast();
-	return new (clref[size]) R3BTrack(mw.X(), mw.Y(), mw.Z(), poq.X(), poq.Y(), poq.Z(), charge, aoz, 0., 0., 0);
+	return new (clref[size]) R3BTrackS522(mw.X(), mw.Y(), mw.Z(), poq.X(), poq.Y(), poq.Z(), charge, aoz, ToFm, FlightPathm, 0., 0., 0.);
 }
 
 // Setup energy cuts in foot and fibers 

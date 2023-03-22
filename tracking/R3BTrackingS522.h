@@ -22,7 +22,7 @@
 #include "R3BFootHitData.h"
 #include "R3BTofdHitData.h"
 #include "R3BMDFWrapper.h"
-#include "R3BTrack.h"
+#include "R3BTrackS522.h"
 #include "TCanvas.h"
 #include "TClonesArray.h"
 #include "TMath.h"
@@ -406,7 +406,7 @@ class R3BTrackingS522 : public FairTask
     const Double_t AMU = 0.9314940038;          // GeV/c2
 
     // Private method to fill output track data
-    R3BTrack* AddTrackData(TVector3 mw, TVector3 poq, Double_t charge, Double_t aoz);
+    R3BTrackS522* AddTrackData(TVector3 mw, TVector3 poq, Double_t charge, Double_t aoz, Double_t ToF, Double_t FlightPath);
 
   public:
     ClassDef(R3BTrackingS522, 1)
