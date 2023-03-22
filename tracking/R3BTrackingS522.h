@@ -170,10 +170,10 @@ class R3BTrackingS522 : public FairTask
     std::vector<Track> tracks_out;//track candidates in FOOT
 
     //Storage of hit indices
-    vector<UInt_t> f1_hits;
-    vector<UInt_t> f2_hits;
-    vector<UInt_t> f15_hits;
-    vector<UInt_t> f16_hits;
+    vector<Int_t> f1_hits;
+    vector<Int_t> f2_hits;
+    vector<Int_t> f15_hits;
+    vector<Int_t> f16_hits;
     TVector3 m0_point, m1_point, f1_point, f2_point, f15_point,f16_point, f30_point, f32_point, flast_point;
     TVector3 m0_point_i, m1_point_i, f1_point_i, f2_point_i, f15_point_i,f16_point_i, f30_point_i, f32_point_i, flast_point_i;
     bool IsGoodFiberHit(R3BFiberMAPMTHitData* fhit);
@@ -213,6 +213,7 @@ class R3BTrackingS522 : public FairTask
 	    MWPC0_HITDATA,
 	    MWPC1_HITDATA,
 	    FRS_DATA,
+	    LOS_DATA,
 	    DET_MAX
     };
 
@@ -221,7 +222,7 @@ class R3BTrackingS522 : public FairTask
     // Names of essential branches in the input tree
     // do not change the order! add new data in the end
     const char* fDetectorNames[DET_MAX + 1] = { "Fi30Hit", "Fi31Hit", "Fi32Hit", "Fi33Hit",
-	    "TofdHit", "FootHitData", "Mwpc0HitData", "Mwpc1HitData", "FrsData", NULL };
+	    "TofdHit", "FootHitData", "Mwpc0HitData", "Mwpc1HitData", "FrsData", "LosHit", NULL };
 
     R3BEventHeader* fHeader;
     std::vector<TClonesArray*> fDataItems; // input data
@@ -298,26 +299,28 @@ class R3BTrackingS522 : public FairTask
     Double_t FiberEnergyMax = 0;
 
     TTree tree_out;
-    UInt_t N_glob_tracks ;
-    UInt_t N_in_tracks;
-    UInt_t N_out_tracks;
-    static constexpr UInt_t N_glob_tracks_max = 10000000;
-    UInt_t mul_m0;
-    UInt_t mul_m1;
-    UInt_t mul_f1;
-    UInt_t mul_f2;
-    UInt_t mul_f15;
-    UInt_t mul_f16;
-    UInt_t mul_f30;
-    UInt_t mul_f31;
-    UInt_t mul_f32;
-    UInt_t mul_f33;
-    UInt_t mul_tofd;
-    UInt_t mul_foot;
-    UInt_t as=0;
-    UInt_t b=0;
-    UInt_t c=0;
-    Int_t Tpat = 0;
+    Int_t N_glob_tracks ;
+    Int_t N_in_tracks;
+    Int_t N_out_tracks;
+    static constexpr UInt_t N_glob_tracks_max = 100000;
+    Int_t mul_los=-999;
+    Int_t mul_m0=-999;
+    Int_t mul_m1=-999;
+    Int_t mul_f1=-999;
+    Int_t mul_f2=-999;
+    Int_t mul_f15=-999;
+    Int_t mul_f16=-999;
+    Int_t mul_f30=-999;
+    Int_t mul_f31=-999;
+    Int_t mul_f32=-999;
+    Int_t mul_f33=-999;
+    Int_t mul_tofd=-999;
+    Int_t mul_foot=-999;
+    Int_t as=0;
+    Int_t b=0;
+    Int_t c=0;
+    Int_t Tpat = -999;
+    bool cond=false;
     //Double_t ToF[N_glob_tracks_max];
     //Double_t Beta[N_glob_tracks_max];
     //Double_t Gamma[N_glob_tracks_max];

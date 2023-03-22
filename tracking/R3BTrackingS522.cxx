@@ -112,6 +112,7 @@ InitStatus R3BTrackingS522::Init()
 		{
 			R3BLOG(fatal, Form("\n\n Cannot find tree branch %s \n\n", fDetectorNames[det]));
 		}
+	//	mgr->Register(Form("%s", fDetectorNames[det]), std::to_string(det).c_str(), fDataItems[det], true);
 	}
 	// check if all cuts are properly set
 	if (GladCurrent < 0 || GladReferenceCurrent < 0 || 
@@ -143,10 +144,12 @@ InitStatus R3BTrackingS522::Init()
 	gMDFTrackerS522 = this;
 
 	tree_out.SetName("tree_out");
+	tree_out.Branch("Cond", &cond);
 	tree_out.Branch("N_glob_tracks", &N_glob_tracks, "N_glob_tracks/i");
 	tree_out.Branch("N_in_tracks",   &N_in_tracks,   "N_in_tracks/i");
 	tree_out.Branch("N_out_tracks",  &N_out_tracks,  "N_out_tracks/i");
 
+	tree_out.Branch("mul_los",   &mul_los,   "mul_los/i");
 	tree_out.Branch("mul_m0",   &mul_m0,   "mul_m0/i");
 	tree_out.Branch("mul_m1",   &mul_m1,   "mul_m1/i");
 	tree_out.Branch("mul_foot", &mul_foot, "mul_foot/i");
@@ -218,98 +221,52 @@ InitStatus R3BTrackingS522::Init()
 
 
 	tree_out.Branch("tofd_Q",    tofd_Q,  "tofd_Q[N_glob_tracks]/F");
-
 	// Request storage of R3BTrack data in the output tree
 	mgr->Register("MDFTracks", "MDFTracks data", fTrackItems, kTRUE);
-
 	return kSUCCESS; 
 }
 
 void R3BTrackingS522::Exec(Option_t* option)
 {
-	//if (fNEvents / 1000. == (int)fNEvents / 1000)
-	//std::cout << "\rEvents: " << fNEvents << " / " << maxevent << " (" << (int)(fNEvents * 100. / maxevent)
-	//	<< " %) " << std::flush;
-	FairRootManager* mgr = FairRootManager::Instance();
-	R3BLOG_IF(fatal, NULL == mgr, "FairRootManager not found");
+	if (fNEvents / 1000. == (int)fNEvents / 1000)
+		std::cout << "\rEvents: " << fNEvents << " / " << maxevent << " (" << (int)(fNEvents * 100. / maxevent)
+			<< " %) " << std::flush;
+	//	FairRootManager* mgr = FairRootManager::Instance();
+	//	R3BLOG_IF(fatal, NULL == mgr, "FairRootManager not found");
+
 	fNEvents += 1;
-	/*	for (int u=0; u<N_glob_tracks_max; u++){
-		PoQ[u]=-999.;;
-		FlightPath[u]=-999;
-		ToF[u]=-999;
-		TX0[u]=-999;
-		TX1[u]=-999;
-		TY0[u]=-999;
-		TY1[u]=-999;
-		Beta[u]=-999;
-		Gamma[u]=-999;
-		mdf_AoZ[u]=-999;
-		vertex_foot_X[u]=-999;
-		vertex_foot_Y[u]=-999;
-		vertex_mwpc_X[u]=-999;
-		vertex_mwpc_Y[u]=-999;
-
-		f1_X[u]=-999;
-		f1_Y[u]=-999;
-		f1_Z[u]=-999;
-		f1_Q[u]=-999;
-		f1_T[u]=-999;
-
-		f2_X[u]=-999;
-		f2_Y[u]=-999;
-		f2_Z[u]=-999;
-		f2_Q[u]=-999;
-		f2_T[u]=-999;
-
-		f15_X[u]=-999;
-		f15_Y[u]=-999;
-		f15_Z[u]=-999;
-		f15_Q[u]=-999;
-		f15_T[u]=-999;
-
-		f16_X[u]=-999;
-		f16_Y[u]=-999;
-		f16_Z[u]=-999;
-		f16_Q[u]=-999;
-		f16_T[u]=-999;
-
-		f30_X[u]=-999;
-		f30_Y[u]=-999;
-		f30_Z[u]=-999;
-		f30_Q[u]=-999;
-		f30_T[u]=-999;
-
-		f32_X[u]=-999;
-		f32_Y[u]=-999;
-		f32_Z[u]=-999;
-		f32_Q[u]=-999;
-		f32_T[u]=-999;
-
-		last_X[u]=-999;
-		last_Y[u]=-999;
-		last_Z[u]=-999;
-		last_Q[u]=-999;
-		last_T[u]=-999;
-
-		tofd_X[u]=-999;
-		tofd_Y[u]=-999;
-		tofd_Z[u]=-999;
-		tofd_Q[u]=-999;
-		tofd_T[u]=-999;
-		tofd_ID[u]=-999;
-
-		}
-		*/
 	N_glob_tracks=0;
 	N_in_tracks=0;
 	N_out_tracks=0;
 
 	is_good_event = false;
-
+	cout<<"Ciao"<<endl;
+	//if(fTpat>0 && (((fHeader->GetTpat()) & fTpat) != fTpat)) return;	
 	Tpat = fHeader->GetTpat();//vairable in the output tree
-	//if(fTpat>0 && (((fHeader->GetTpat()) & fTpat) != fTpat)) return;
-	if(fTpat<0 && fHeader->GetTpat()>64) return;//if Tpat is not set
+cout<<"Pallina"<<endl;
+	if(Tpat>64 || Tpat==0) return;//if Tpat is not set	
 	//if(fHeader->GetTpat()>64) return;//if Tpat is not set
+	mul_los=-999;
+	mul_m0=-999;
+	mul_m1=-999;
+	mul_foot=-999;
+	mul_f32=-999;
+	mul_f30=-999;
+	mul_f31=-999;
+	mul_f33=-999;
+	mul_tofd=-999;
+	cond=false;
+	cout << "\n\nMul los: \t" << mul_los;
+	cout << "\n\nMul m0: \t" << mul_m0;
+	cout << "\nMul m1: \t" << mul_m1;
+	cout << "\nMul foot: \t" << mul_foot;
+	cout << "\nMul f30: \t" << mul_f30;
+	cout << "\nMul f31: \t" << mul_f31;
+	cout << "\nMul f32: \t" << mul_f32;
+	cout << "\nMul f33: \t" << mul_f33;
+	cout << "\nMul tofd: \t" << mul_tofd;
+
+	mul_los   = fDataItems[LOS_DATA]->GetEntriesFast();
 	mul_m0   = fDataItems[MWPC0_HITDATA]->GetEntriesFast();
 	mul_m1   = fDataItems[MWPC1_HITDATA]->GetEntriesFast();
 	mul_foot = fDataItems[FOOT_HITDATA]->GetEntriesFast();
@@ -319,19 +276,22 @@ void R3BTrackingS522::Exec(Option_t* option)
 	mul_f33  = fDataItems[DET_FI33]->GetEntriesFast();
 	mul_tofd = fDataItems[DET_TOFD]->GetEntriesFast();
 
-	//cout << "\n\nMul m0: \t" << mul_m0;
-	//cout << "\nMul m1: \t" << mul_m1;
-	//cout << "\nMul foot: \t" << mul_foot;
-	//cout << "\nMul f30: \t" << mul_f30;
-	//cout << "\nMul f31: \t" << mul_f31;
-	//cout << "\nMul f32: \t" << mul_f32;
-	//cout << "\nMul f33: \t" << mul_f33;
-	//cout << "\nMul tofd: \t" << mul_tofd;
+	cout << "\n\nMulwd los: \t" << mul_los;
+	cout << "\n\nMul1 m0: \t" << mul_m0;
+	cout << "\nMul m1: \t" << mul_m1;
+	cout << "\nMul foot: \t" << mul_foot;
+	cout << "\nMul f30: \t" << mul_f30;
+	cout << "\nMul f31: \t" << mul_f31;
+	cout << "\nMul f32: \t" << mul_f32;
+	cout << "\nMul f33: \t" << mul_f33;
+	cout << "\nMul tofd: \t" << mul_tofd;
 
-
+	//cout<<"TYPAT-> "<<fTpat<<endl;	
 	if(mul_m0!=1 || mul_m1!=1 || mul_foot<1) return;//for now take only mul=1 in mwpcs
 	if(mul_f32<1 || mul_f30<1 || (mul_f31==0 && mul_f33==0) || mul_tofd<1) return;
 	if(mul_f32>10 || mul_f30>10 || mul_f31>10 || mul_f33 >10 || mul_tofd>10) return;
+	if(mul_los!=1) return;
+	//return;
 
 	//cout << "\nGood event!\n";
 
@@ -370,7 +330,8 @@ void R3BTrackingS522::Exec(Option_t* option)
 	if(mul_f1>10 || mul_f2>10 || mul_f15>10 || mul_f16 >10) return;
 	//cout << "\nGood event111111!\n";
 	is_good_event = true;
-	//as++;
+	as++;
+	cond=true;
 	/*	if (DoAlignment && mul_f1==1 && mul_f2==1 && mul_f32==1 && mul_f30==1 && mul_f31==1)
 		{
 		det_points align_data;
@@ -383,7 +344,7 @@ void R3BTrackingS522::Exec(Option_t* option)
 		}
 		*/
 	double delta_TY0, delta_TX0;
-       for (auto & tin : tracks_in){
+	for (auto & tin : tracks_in){
 		for (auto & tout : tracks_out){
 
 			//preserve the order, it is expected by the MDF function!
@@ -420,7 +381,7 @@ void R3BTrackingS522::Exec(Option_t* option)
 
 			delta_TX0 = TX0[N_glob_tracks] - (tin.f15_x - tin.f1_x)/(tin.f15_z-tin.f1_z);
 			//if(delta_TX0<(-0.029) || delta_TX0>(-0.023))//f31
-				if(delta_TX0<(-0.02) || delta_TX0>(-0.012))//f33
+			if(delta_TX0<(-0.02) || delta_TX0>(-0.012))//f33
 				//if(delta_TX0<(-0.022) || delta_TX0>(-0.012))//f31 run 159
 				continue;
 
@@ -464,15 +425,15 @@ void R3BTrackingS522::Exec(Option_t* option)
 			if(N_glob_tracks == N_glob_tracks_max) return;
 		}
 	}
-		return;
+	return;
 }
 
 void R3BTrackingS522::FinishEvent()
 {
-		//if(is_good_event) {
-	//cout<<"Good event***"<<endl;	    
+	//if(is_good_event) {
+	cout<<"Good event***"<<endl;	    
 	tree_out.Fill();
-//}
+	//}
 	for (auto& DataItem : fDataItems)
 	{
 		DataItem->Clear();
@@ -485,7 +446,7 @@ void R3BTrackingS522::FinishEvent()
 	tracks_in.clear();
 	tracks_out.clear();
 	//Fill tree senza condizione
-	//cout<<"FINEEE"<<endl;
+	cout<<"FINEEE"<<endl;
 	//cout << "\n\nMul m0: " << mul_m0;
 	//cout << "\nMul m1: " << mul_m1;
 	//cout << "\nMul foot: " << mul_foot;
@@ -500,7 +461,7 @@ void R3BTrackingS522::FinishTask()
 {
 	//cout<<"a-> "<<as<<endl;
 	//cout<<"b-> "<<b<<endl;
-	//cout<<"c-> "<<c<<endl;
+	cout<<"CAPOLLO "<<c<<endl;
 	LOG(info) << "Processed " << fNEvents << " events\n\n";
 	if (DoAlignment) Alignment();
 	tree_out.Write();
@@ -626,30 +587,30 @@ bool R3BTrackingS522::MakeIncomingTracks()
 					dy_angle = tr.ty0 - ty_in;
 					//s522
 					if(dx_angle >-999 && dy_angle >-999 && dx_vertex >-999 && dy_vertex >-999){
-					if(dx_vertex<1 || dx_vertex>2 || dy_vertex<(-2.5) || dy_vertex>(-1.5)) continue;
-					if(dy_angle<-0.03 || dy_angle>-0.005 || dx_angle<-0.01 || dx_angle>0.02) continue;
-					//s509
-					//if(dx_vertex<1 || dx_vertex>2 || dy_vertex<(-1.9) || dy_vertex>(-1.)) continue;
+						if(dx_vertex<1 || dx_vertex>2 || dy_vertex<(-2.5) || dy_vertex>(-1.5)) continue;
+						if(dy_angle<-0.03 || dy_angle>-0.005 || dx_angle<-0.01 || dx_angle>0.02) continue;
+						//s509
+						//if(dx_vertex<1 || dx_vertex>2 || dy_vertex<(-1.9) || dy_vertex>(-1.)) continue;
 
-					tr.f1_x   = f1_point.X();
-					tr.f1_z   = f1_point.Z();
-					tr.f2_y   = f2_point.Y();
-					tr.f2_z   = f2_point.Z();
-					tr.f15_x  = f15_point.X();
-					tr.f15_z  = f15_point.Z();
-					tr.f16_y  = f16_point.Y();
-					tr.f16_z  = f16_point.Z();
-					tracks_in.push_back(tr);
+						tr.f1_x   = f1_point.X();
+						tr.f1_z   = f1_point.Z();
+						tr.f2_y   = f2_point.Y();
+						tr.f2_z   = f2_point.Z();
+						tr.f15_x  = f15_point.X();
+						tr.f15_z  = f15_point.Z();
+						tr.f16_y  = f16_point.Y();
+						tr.f16_z  = f16_point.Z();
+						tracks_in.push_back(tr);
 
-					//Fill output tree
-					vertex_mwpc_X[N_in_tracks] = vertex_mwpc.X();
-					vertex_mwpc_Y[N_in_tracks] = vertex_mwpc.Y();
-					vertex_foot_X[N_in_tracks] = vertex_foot.X();
-					vertex_foot_Y[N_in_tracks] = vertex_foot.Y();
-					angle_yd[N_in_tracks] = dy_angle;
-					angle_xd[N_in_tracks] = dx_angle;
-					N_in_tracks++;
-					//if(N_in_tracks==N_glob_tracks_max/2) return true;
+						//Fill output tree
+						vertex_mwpc_X[N_in_tracks] = vertex_mwpc.X();
+						vertex_mwpc_Y[N_in_tracks] = vertex_mwpc.Y();
+						vertex_foot_X[N_in_tracks] = vertex_foot.X();
+						vertex_foot_Y[N_in_tracks] = vertex_foot.Y();
+						angle_yd[N_in_tracks] = dy_angle;
+						angle_xd[N_in_tracks] = dx_angle;
+						N_in_tracks++;
+						//if(N_in_tracks==N_glob_tracks_max/2) return true;
 					}	
 				}
 			}
@@ -730,12 +691,12 @@ bool R3BTrackingS522::MakeOutgoingTracks()
 				//if(N_out_tracks==N_glob_tracks/2) return true;
 			}
 
-/*
+			/*
 			//make combination with every hit in fibers 33 and 31
-				for (auto k = 0; k<fDataItems[DET_FI31]->GetEntriesFast(); ++k)
-				{
-				auto f31 = static_cast<R3BFiberMAPMTHitData*>(fDataItems[DET_FI31]->At(k));
-				if(!IsGoodFiberHit(f31)) continue; //Messel side
+			for (auto k = 0; k<fDataItems[DET_FI31]->GetEntriesFast(); ++k)
+			{
+			auto f31 = static_cast<R3BFiberMAPMTHitData*>(fDataItems[DET_FI31]->At(k));
+			if(!IsGoodFiberHit(f31)) continue; //Messel side
 			//if(f31->GetTime()<7990 && f31->GetTime()>8040) return;
 			//if((f32->GetTime_ns() - f31->GetTime_ns())>20 ||(f32->GetTime_ns() - f31->GetTime_ns())<(-10) ) continue;
 			flast_point.SetXYZ(f31->GetX(), 0, 0); //cm
@@ -869,7 +830,7 @@ void R3BTrackingS522::Alignment()
 
 	// Now define minimizer
 	ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Migrad");
-	const UInt_t NVarsFunctor = 20; // number of the alignment offsets: (2 angles + 3 offsets) x 4 detectors
+	const Int_t NVarsFunctor = 20; // number of the alignment offsets: (2 angles + 3 offsets) x 4 detectors
 	const double* xs={0};
 	double step[NVarsFunctor]={0};
 	double offset[NVarsFunctor]={0};
@@ -895,7 +856,7 @@ void R3BTrackingS522::Alignment()
 			//step[d * 5 + 2 + o] = 0.01;
 		}
 	}
-	for (UInt_t i = 0; i < NVarsFunctor; i++)
+	for (Int_t i = 0; i < NVarsFunctor; i++)
 	{
 		sprintf(hname, "par%d", i);
 		hist[i] = new TH1F(hname, hname, 100, min_offset[i], max_offset[i]);
@@ -915,7 +876,7 @@ void R3BTrackingS522::Alignment()
 	minimizer->SetFunction(f);
 	minimizer->SetPrintLevel(0);
 	// Getting experimental data and doing minimization
-	UInt_t i = 0;
+	Int_t i = 0;
 	Int_t bs = 0;
 	bool good_minimum = false;
 	while (bs < 3) // running several minimizations
@@ -980,7 +941,7 @@ void R3BTrackingS522::Alignment()
 	}
 	TCanvas* c1 = new TCanvas("c1", "c1", 1000, 1000);
 	c1->Divide(5, 4);
-	for (UInt_t v = 0; v < NVarsFunctor; v++)
+	for (Int_t v = 0; v < NVarsFunctor; v++)
 	{
 		c1->cd(v + 1);
 		hist[v]->Draw();
