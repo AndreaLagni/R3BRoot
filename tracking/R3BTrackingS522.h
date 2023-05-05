@@ -39,7 +39,7 @@ class R3BTrackingS522 : public FairTask
 {
   public:
     R3BTrackingS522();
-    R3BTrackingS522(const char* name, Int_t iVerbose = 1);
+    R3BTrackingS522(const char* name, int iVerbose = 1);
     virtual ~R3BTrackingS522();
     virtual InitStatus Init();
     virtual void Exec(Option_t* option);
@@ -48,10 +48,10 @@ class R3BTrackingS522 : public FairTask
 
     // GLAD current which was used for training MDF function
     // Should  be set form the steering macro
-    void SetGladReferenceCurrent(Double_t cur) { GladReferenceCurrent = cur; }
+    void SetGladReferenceCurrent(double cur) { GladReferenceCurrent = cur; }
 
     // GLAD current in the run being anlaysed, set from steering macro
-    void SetGladCurrent(Double_t cur) { GladCurrent = cur; }
+    void SetGladCurrent(double cur) { GladCurrent = cur; }
 
     // Set MDF functions from the steering macro
     void Set_MDF_PoQ(TString name) { MDF_PoQ_filename = name; }
@@ -60,9 +60,9 @@ class R3BTrackingS522 : public FairTask
     void Set_MDF_TY0(TString name) { MDF_TY0_filename = name; }
     void Set_MDF_TX1(TString name) { MDF_TX1_filename = name; }
     void Set_MDF_TY1(TString name) { MDF_TY1_filename = name; }
-    void SetTrigger(Int_t trigger) { fTrigger = trigger; }
-    void SetTpat(Int_t tpat) { fTpat = tpat; }
-    void SetMaxEvent(Int_t nev) { maxevent = nev; }
+    void SetTrigger(int trigger) { fTrigger = trigger; }
+    void SetTpat(int tpat) { fTpat = tpat; }
+    void SetMaxEvent(int nev) { maxevent = nev; }
 
     // Set lab positions and angles of the detectors from the steering macro
     // LOS
@@ -132,15 +132,15 @@ class R3BTrackingS522 : public FairTask
 
     // Transofrming input detector hit (point) into laboratory system
     void TransformPoint(TVector3& point, TVector3* rotation, TVector3* translation);
-    void TransformPoint1(TVector3& point1, TVector3 rotation1, TVector3 translation1);
+    void TransformPoint1(TVector3& point1,/* TVector3 rotation1, */TVector3 translation1);
     // Setup energy cuts in foot and fibers 
     void SetFootEnergyMinMax(double min, double max);
     void SetFiberEnergyMinMax(double min, double max);
 
     // Setters for the alignment procedure
     void SetDoAlignment(bool flag) { DoAlignment = flag; }
-    void SetReferencePoQ(Double_t val) { reference_PoQ = val; }
-    Double_t GetReferencePoQ() { return reference_PoQ; }
+    void SetReferencePoQ(double val) { reference_PoQ = val; }
+    double GetReferencePoQ() { return reference_PoQ; }
 
     void Alignment();
     static double AlignmentErrorS522(const double* par);
@@ -168,14 +168,23 @@ class R3BTrackingS522 : public FairTask
     };
     std::vector<Track> tracks_in; //track candidates in FOOT
     std::vector<Track> tracks_out;//track candidates in FOOT
-
+    TVector3 vertex_mwpc, vertex_foot;//projection to the center of the target (0,0,0)
+    vector <int> id;
     //Storage of hit indices
-    vector<Int_t> f1_hits;
-    vector<Int_t> f2_hits;
-    vector<Int_t> f15_hits;
-    vector<Int_t> f16_hits;
+    vector<int> f1_hits;
+    vector<int> f2_hits;
+    vector<int> f15_hits;
+    vector<int> f16_hits;
     TVector3 m0_point, m1_point, f1_point, f2_point, f15_point,f16_point, f30_point, f32_point, flast_point;
-    TVector3 m0_point_i, m1_point_i, f1_point_i, f2_point_i, f15_point_i,f16_point_i, f30_point_i, f32_point_i, flast_point_i;
+    TVector3 mw_point_i, m0_point_i, m1_point_i, f1_point_i, f2_point_i, f15_point_i,f16_point_i, f30_point_i, f32_point_i, flast_point_i;
+
+    //Input vertex vector
+    vector <double> *x_vm_t = new vector <double>();
+    vector <double> *y_vm_t = new vector <double>();
+    vector <double> *z_vm_t = new vector <double>();
+    vector <double> *dm_t = new vector <double>();
+    vector <double> *opa_f_t = new vector <double>();
+    TTree *vt;
     bool IsGoodFiberHit(R3BFiberMAPMTHitData* fhit);
     bool IsGoodFootHit(R3BFootHitData* fhit);
     bool SortFootData();
@@ -184,6 +193,7 @@ class R3BTrackingS522 : public FairTask
     // Data containesr needed only for the Alignment() function
     struct det_points
     {
+	    TVector3 mw;
 	    TVector3 f1;
 	    TVector3 f2;
 	    TVector3 f30;
@@ -193,8 +203,8 @@ class R3BTrackingS522 : public FairTask
     std::vector<det_points> det_points_vec;
 
     // TVector3 mwpc_point, f10_point, f11_point, f12_point, tofd_point;
-    TVector3 f1_ang_offset, f2_ang_offset, f30_ang_offset, f32_ang_offset, flast_ang_offset;
-    TVector3 f1_pos_offset, f2_pos_offset, f30_pos_offset, f32_pos_offset, flast_pos_offset;
+    TVector3 mw_ang_offset, f1_ang_offse, f2_ang_offset, f30_ang_offset, f32_ang_offset, flast_ang_offset;
+    TVector3 mw_pos_offset, f1_pos_offset, f2_pos_offset, f30_pos_offset, f32_pos_offset, flast_pos_offset;
 
 
   private:
@@ -279,62 +289,72 @@ class R3BTrackingS522 : public FairTask
     TString MDF_TX1_filename;
     TString MDF_TY1_filename;
 
-    Double_t mdf_data[8];   // data container for the MDF function
-    unsigned long fNEvents; // Event counter
-    Int_t fTrigger;
-    Int_t fTpat;
-    Int_t maxevent;
-    Double_t GladCurrent;
-    Double_t GladReferenceCurrent;
-    Double_t reference_PoQ ;
+    double mdf_data[8];   // data container for the MDF function
+    unsigned long fNEvents=0; // Event counter
+    int fTrigger;
+    int fTpat;
+    int maxevent;
+    double GladCurrent;
+    double GladReferenceCurrent;
+    double reference_PoQ ;
     Bool_t DoAlignment;
-    Double_t tof_offset; // ns
+    double tof_offset; // ns
 
     // Energy range in FOOT 
-    Double_t FootEnergyMin = 0;
-    Double_t FootEnergyMax = 0;
+    double FootEnergyMin = 0;
+    double FootEnergyMax = 0;
 
     // Cut on fiber hit energy set by SetFiberEnergyMinMax():
-    Double_t FiberEnergyMin = 0;
-    Double_t FiberEnergyMax = 0;
+    double FiberEnergyMin = 0;
+    double FiberEnergyMax = 0;
 
     TTree tree_out;
-    Int_t N_glob_tracks ;
-    Int_t N_in_tracks;
-    Int_t N_out_tracks;
-    static constexpr UInt_t N_glob_tracks_max = 100000;
-    Int_t mul_los=-999;
-    Int_t mul_m0=-999;
-    Int_t mul_m1=-999;
-    Int_t mul_f1=-999;
-    Int_t mul_f2=-999;
-    Int_t mul_f15=-999;
-    Int_t mul_f16=-999;
-    Int_t mul_f30=-999;
-    Int_t mul_f31=-999;
-    Int_t mul_f32=-999;
-    Int_t mul_f33=-999;
-    Int_t mul_tofd=-999;
-    Int_t mul_foot=-999;
-    Int_t as=0;
-    Int_t b=0;
-    Int_t c=0;
-    Int_t Tpat = -999;
+    int N_glob_tracks ;
+    int N_in_tracks;
+    int N_out_tracks;
+    static constexpr int N_glob_tracks_max = 100;
+    int mul_los=-999;
+    int mul_m0=-999;
+    int mul_m1=-999;
+    int mul_f1=-999;
+    int mul_f2=-999;
+    int mul_f15=-999;
+    int mul_f16=-999;
+    int mul_f30=-999;
+    int mul_f31=-999;
+    int mul_f32=-999;
+    int mul_f33=-999;
+    int mul_tofd=-999;
+    int mul_foot=-999;
+    int as=0;
+    int bb=0;
+    int cc=0;
+    int as1=0;
+    int b1=0;
+    int b2=0;
+    int ff=0;
+    int dd=0;
+    int ee=0;
+    int Tpat = -999;
     bool cond=false;
-    //Double_t ToF[N_glob_tracks_max];
-    //Double_t Beta[N_glob_tracks_max];
-    //Double_t Gamma[N_glob_tracks_max];
-    Double_t PoQ[N_glob_tracks_max];
-    Double_t FlightPath[N_glob_tracks_max];
-    Double_t ToF[N_glob_tracks_max];
-    Double_t TX0[N_glob_tracks_max];
-    Double_t TX1[N_glob_tracks_max];
-    Double_t TY0[N_glob_tracks_max];
-    Double_t TY1[N_glob_tracks_max];
-    Double_t Beta[N_glob_tracks_max];
-    Double_t Gamma[N_glob_tracks_max];
-    Double_t mdf_AoZ[N_glob_tracks_max];
-
+    vector <double> vtx;
+    vector <double> vty;
+    vector <double> vtz;
+    vector <double> distm;
+    vector <double> opan;
+    //double ToF[N_glob_tracks_max];
+    //double Beta[N_glob_tracks_max];
+    //double Gamma[N_glob_tracks_max];
+    double PoQ[N_glob_tracks_max];
+    double FlightPath[N_glob_tracks_max];
+    double ToF[N_glob_tracks_max];
+    double TX0[N_glob_tracks_max];
+    double TX1[N_glob_tracks_max];
+    double TY0[N_glob_tracks_max];
+    double TY1[N_glob_tracks_max];
+    double Beta[N_glob_tracks_max];
+    double Gamma[N_glob_tracks_max];
+    double mdf_AoZ[N_glob_tracks_max];
     Float_t  m0_X = -999;
     Float_t  m0_Y = -999;
     Float_t  m0_Z = -999;
@@ -399,14 +419,26 @@ class R3BTrackingS522 : public FairTask
     Float_t tofd_Q[N_glob_tracks_max];
     Float_t tofd_T[N_glob_tracks_max];
     Float_t tofd_ID[N_glob_tracks_max];
-
+    vector <double> ver_X;
+    vector <double> ver_Y;
+    vector <double> ver_Z;
+    vector <double> poqm;
+    vector <double> tofdq;
+    vector <double> flight_p;
+    vector <double> tof;
+    vector <double> Opa;
+    vector <double> Dm;
+    vector <double> maoz;
+    vector <int> nglt;
+    vector <int> nint;
+    vector <int> nogt;
 
     // Essential constants
-    const Double_t SPEED_OF_LIGHT = 29.9792458; // cm/ns
-    const Double_t AMU = 0.9314940038;          // GeV/c2
+    const double SPEED_OF_LIGHT = 29.9792458; // cm/ns
+    const double AMU = 0.9314940038;          // GeV/c2
 
     // Private method to fill output track data
-    R3BTrackS522* AddTrackData(TVector3 mw, TVector3 poq, Double_t charge, Double_t aoz, Double_t ToF, Double_t FlightPath);
+    R3BTrackS522* AddTrackData(TVector3 mw, TVector3 poq, TVector3 vertex, double opa,  double charge, double aoz, int Mul, double ToF, double FlightPath);
 
   public:
     ClassDef(R3BTrackingS522, 1)

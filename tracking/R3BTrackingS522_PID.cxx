@@ -154,7 +154,7 @@ InitStatus R3BTrackingS522::Init()
 	vt->SetBranchAddress("X_vertex_m_t",&x_vm_t);
 	vt->SetBranchAddress("Dist_m_t",&dm_t);
 	vt->SetBranchAddress("Opening_angle_Foot_t",&opa_f_t);
-        nevents=0;
+        //nevents=0;
 	for(int i=0; i<nevents; i++){
 		vt->GetEntry(i);
 		if(x_vm_t->size()>0){
@@ -172,6 +172,9 @@ InitStatus R3BTrackingS522::Init()
 			opan.push_back(-999.);
 		}
 	}
+
+
+
 
 	// linking to global pointer (needed by alignment)
 	gMDFTrackerS522 = this;
@@ -276,7 +279,7 @@ void R3BTrackingS522::Exec(Option_t* option)
 	//	FairRootManager* mgr = FairRootManager::Instance();
 	//	R3BLOG_IF(fatal, NULL == mgr, "FairRootManager not found");
 	//as++;	
-	//cout<<fNEvents<<endl;
+	cout<<fNEvents<<endl;
 	N_glob_tracks=0;
 	fNEvents += 1;
 	N_in_tracks=0;
@@ -288,7 +291,7 @@ void R3BTrackingS522::Exec(Option_t* option)
 	if(Tpat>64 || Tpat==0) return;//if Tpat is not set	
 	//if(fHeader->GetTpat()>64) return;//if Tpat is not set
 	//as1++;
-//	if(vtx.size()>0 && vtx.at(fNEvents-1)!=-999. && distm.at(fNEvents-1)<1 && vtx.at(fNEvents-1)<20 && vtx.at(fNEvents-1)>-40 && vty.at(fNEvents-1)<25 && vty.at(fNEvents-1)>-25 &&vtz.at(fNEvents-1)<470 && vtz.at(fNEvents-1)>410){
+	if(vtx.size()>0 && vtx.at(fNEvents-1)!=-999. && distm.at(fNEvents-1)<1 && vtx.at(fNEvents-1)<20 && vtx.at(fNEvents-1)>-40 && vty.at(fNEvents-1)<25 && vty.at(fNEvents-1)>-25 &&vtz.at(fNEvents-1)<470 && vtz.at(fNEvents-1)>410){
 	mul_los=-999;
 	mul_m0=-999;
 	mul_m1=-999;
@@ -328,16 +331,18 @@ void R3BTrackingS522::Exec(Option_t* option)
 	//ver_X.push_back(vtx.at(fNEvents-1));
 	//ver_Y.push_back(vty.at(fNEvents-1));
 	//ver_Z.push_back(vtz.at(fNEvents-1));
+	//cout<<"TYPAT-> "<<fTpat<<endl;	
 	//bb++;
 
 	if(mul_m0!=1 || mul_m1!=1/* || mul_foot<1*/) return;//for now take only mul=1 in mwpcs
 	//b1++;
 	if(mul_f32<1 || mul_f30<1 || (mul_f31==0 && mul_f33==0) ||  mul_tofd<1) return;
 	//b2++;
-	if(mul_f32>10 || mul_f30>10 || mul_f31>10 || mul_f33 >10 || mul_tofd>10) return;
+	//if(mul_f32>10 || mul_f30>10 || mul_f31>10 || mul_f33 >10 || mul_tofd>10) return;
 	if(mul_los!=1) return;
 	//return;
 	//cc++;
+	//cout << "\nGood event!\n";
 
 	//FRS data
 //	auto frs_DataItems = fDataItems.at(FRS_DATA);
@@ -364,10 +369,10 @@ void R3BTrackingS522::Exec(Option_t* option)
 		//cout<<"Bad_tofd"<<endl; 
 		return;
 	}
-	if(!MakeIncomingTracks()){ 
+	//if(!MakeIncomingTracks()){ 
 	//	cout<<"Bad_incoming"<<endl; 
 	//	return;//at least one good track candidate in FOOT
-	}
+	//}
 	ee++;
 	if(!MakeOutgoingTracks()){ 
 		//cout<<"Bad_outgoing"<<endl; 
@@ -378,36 +383,30 @@ void R3BTrackingS522::Exec(Option_t* option)
 	is_good_event = true;
 	ff++;
 	cond=true;
-/*
-		if (DoAlignment)
+
+	/*	if (DoAlignment && mul_f1==1 && mul_f2==1 && mul_f32==1 && mul_f30==1 && mul_f31==1)
 		{
 		det_points align_data;
-		align_data.mw.SetXYZ(vertex_mwpc.X(),vertex_mwpc.Y(), 0.);
+		align_data.f1.SetXYZ(f1_point_i.X(),0, f1_point_i.Z());
+		align_data.f2.SetXYZ(0, f2_point_i.Y(), f2_point_i.Z());
 		align_data.f30.SetXYZ(0, f30_point_i.Y(), f30_point_i.Z());
 		align_data.f32.SetXYZ(f32_point_i.X(),0, f32_point_i.Z());
 		align_data.flast.SetXYZ(flast_point_i.X(),0, flast_point_i.Z());
 		det_points_vec.push_back(align_data);
 		}
-	*/	
+		*/
 	double delta_TX1, delta_TX0;
 	//for (auto & tin : tracks_in){
 	for (auto & tout : tracks_out){
-	if(vertex_mwpc.X()>-20 && vertex_mwpc.X()<20 && vertex_mwpc.Y()<20 && vertex_mwpc.Y()>-20){
+
 		//MDF VERTEX ANDREA LAGNI
 		//preserve the order, it is expected by the MDF function!
-		mdf_data[0] = vertex_mwpc.X();
-		mdf_data[1] = vertex_mwpc.Y();
-	
-	
-		//mdf_data[0] = 0;
-		//mdf_data[1] = 0;
-		
-	
-	
-		mdf_data[2] = 0.;
-		//mdf_data[0] = vtx.at(fNEvents-1)*0.1;
-		//mdf_data[1] = vty.at(fNEvents-1)*0.1;
-		//mdf_data[2] = (vtz.at(fNEvents-1)-441)*0.1;
+		//mdf_data[0] = -1;
+		//mdf_data[1] = 0.;
+		//mdf_data[2] = 0.;
+		mdf_data[0] = vtx.at(fNEvents-1)*0.1;
+		mdf_data[1] = vty.at(fNEvents-1)*0.1;
+		mdf_data[2] = (vtz.at(fNEvents-1)-441)*0.1;
 		mdf_data[3] = tout.f32_x;
 		mdf_data[4] = tout.f32_z;
 		mdf_data[5] = (tout.last_x - tout.f32_x)/(tout.last_z - tout.f32_z);
@@ -441,7 +440,7 @@ void R3BTrackingS522::Exec(Option_t* option)
 		TX1[N_glob_tracks] = MDF_TX1->MDF(mdf_data);
 		TY0[N_glob_tracks] = MDF_TY0->MDF(mdf_data);
 		TY1[N_glob_tracks] = MDF_TY1->MDF(mdf_data);
-		cout<<"poQ-> "<<PoQ[N_glob_tracks]<<endl;	
+		//cout<<"poQ-> "<<PoQ[N_glob_tracks]<<endl;	
 
 		//----- Calculate Beta
 		// ToF = tofd_hit->GetTof() + tof_offset;
@@ -516,30 +515,21 @@ void R3BTrackingS522::Exec(Option_t* option)
 		TVector3 vec_foot(f1_X[N_glob_tracks], 0, f1_Z[N_glob_tracks]);
 		TVector3 vec_PoQ(TX0[N_glob_tracks], TY0[N_glob_tracks], 1);
 		vec_PoQ.SetMag(PoQ[N_glob_tracks]);
-		//TVector3 vert_foot(vtx.at(fNEvents-1), vty.at(fNEvents-1), vtz.at(fNEvents-1));
-		TVector3 vert_foot(vertex_mwpc.X(), vertex_mwpc.Y(), 1.);
-		double opan_ang=-79.01;
-		//cout<<"vert "<<vtx.at(fNEvents-1)<<endl;
-		//cout<<"opa "<<opan.size()<<endl;
-		//	if(id.at(N_glob_tracks)==31){
+		TVector3 vert_foot(vtx.at(fNEvents-1), vty.at(fNEvents-1), vtz.at(fNEvents-1));
+		//TVector3 vert_foot(-10., 1., 1.);
+		cout<<"vert "<<vtx.at(fNEvents-1)<<endl;
+		cout<<"opa "<<opan.size()<<endl;
+			if(id.at(N_glob_tracks)==31){
 
-		AddTrackData(vec_foot, vec_PoQ, vert_foot, opan_ang, tofd_Q[N_glob_tracks] , mdf_AoZ[N_glob_tracks]/*-0.39797333*/, N_glob_tracks, ToF[N_glob_tracks], FlightPath[N_glob_tracks]);
-		//}
-		
-		//if(id.at(N_glob_tracks)==33){
-		//	AddTrackData(vec_foot, vec_PoQ, vert_foot, opan_ang, tofd_Q[N_glob_tracks] , mdf_AoZ[N_glob_tracks]-0.1483333, N_glob_tracks, ToF[N_glob_tracks], FlightPath[N_glob_tracks]);
-
-		//}
-
-		if (DoAlignment && PoQ[N_glob_tracks]>0 && mul_f32<5 &&  mul_f30<5 && mul_f31<5 && mul_tofd<5 && tofd_Q[N_glob_tracks]>5.8 && tofd_Q[N_glob_tracks]<6.3 && mdf_AoZ[N_glob_tracks]>2.13184 && mdf_AoZ[N_glob_tracks]<2.17113)
-		{
-		det_points align_data;
-		align_data.mw.SetXYZ(vertex_mwpc.X(),vertex_mwpc.Y(), 0.);
-		align_data.f30.SetXYZ(0, f30_point.Y(), f30_point.Z());
-		align_data.f32.SetXYZ(f32_point.X(),0, f32_point.Z());
-		align_data.flast.SetXYZ(flast_point.X(),0, flast_point.Z());
-		det_points_vec.push_back(align_data);
+		AddTrackData(vec_foot, vec_PoQ, vert_foot, opan.at(fNEvents-1), tofd_Q[N_glob_tracks] , mdf_AoZ[N_glob_tracks]-0.39797333, N_glob_tracks, ToF[N_glob_tracks], FlightPath[N_glob_tracks]);
 		}
+		
+		if(id.at(N_glob_tracks)==33){
+			AddTrackData(vec_foot, vec_PoQ, vert_foot, opan.at(fNEvents-1), tofd_Q[N_glob_tracks] , mdf_AoZ[N_glob_tracks]-0.1483333, N_glob_tracks, ToF[N_glob_tracks], FlightPath[N_glob_tracks]);
+
+		}
+
+		
 				N_glob_tracks++;
 				if(N_glob_tracks==99) break;
 				/*if (DoAlignment && mul_f1==1 && mul_f2==1 && mul_f32==1 && mul_f30==1 && mul_f31==1)
@@ -554,9 +544,10 @@ void R3BTrackingS522::Exec(Option_t* option)
 				}
 				*/
 		//if(N_glob_tracks == N_glob_tracks_max) return;
-        }
+	}
+
 	}  
-	//tracks in
+	//}//tracks in
 	nglt.push_back(N_glob_tracks);	
 	return;
 }
@@ -681,7 +672,7 @@ bool R3BTrackingS522::MakeIncomingTracks()
 	tracks_in.clear();
 	N_in_tracks=0;
 	if(!SortFootData()) return false;//at least 1 hit in every FOOT
-	//TVector3 vertex_mwpc, vertex_foot;//projection to the center of the target (0,0,0)
+	TVector3 vertex_mwpc, vertex_foot;//projection to the center of the target (0,0,0)
 	double tx_in = -999;
 	double ty_in = -999; 
 	double dx_vertex = -999;
@@ -708,7 +699,7 @@ bool R3BTrackingS522::MakeIncomingTracks()
 	vertex_mwpc.SetZ(0);
 
 	//----- Make track candidates in FOOT and project them to the center of the target
-/*	for (auto & f2 : f2_hits){
+	for (auto & f2 : f2_hits){
 		auto f2_hit = static_cast<R3BFootHitData*>(fDataItems[FOOT_HITDATA]->At(f2));
 		f2_point.SetXYZ(0, f2_hit->GetPosLab().Y() * 0.1, 0); //cm
 		f2_point_i=f2_point;
@@ -770,10 +761,10 @@ bool R3BTrackingS522::MakeIncomingTracks()
 			//}f15
 			//}f16
 		}
-	}*/
-	if((vertex_mwpc.X()>50 || vertex_mwpc.X()<-50) || (vertex_mwpc.Y()>50 || vertex_mwpc.Y()<-50)) return false;
+	}
+	if(tracks_in.empty()) return false;
 	else return true;
-	
+
 	nint.push_back(N_in_tracks);	
 }
 
@@ -822,7 +813,7 @@ bool R3BTrackingS522::MakeOutgoingTracks()
 			//if(fabs(f32->GetTime_ns() - f30->GetTime_ns())>30) continue;
 			// TOFF if(f30->GetTime()<7980 || f30->GetTime()>8040) continue;
 			//make combination with every hit in fibers 33 and 31
-	/*		for (auto k = 0; k<fDataItems[DET_FI33]->GetEntriesFast(); ++k)
+			for (auto k = 0; k<fDataItems[DET_FI33]->GetEntriesFast(); ++k)
 			{
 				auto f33 = static_cast<R3BFiberMAPMTHitData*>(fDataItems[DET_FI33]->At(k));
 				if(!IsGoodFiberHit(f33)) continue; //Messel side
@@ -857,7 +848,7 @@ bool R3BTrackingS522::MakeOutgoingTracks()
 				//if(N_out_tracks==N_glob_tracks/2) return true;
 			}
 
-	*/		//make combination with every hit in fibers 33 and 31
+			//make combination with every hit in fibers 33 and 31
 			for (auto k = 0; k<fDataItems[DET_FI31]->GetEntriesFast(); ++k)
 			{
 				auto f31 = static_cast<R3BFiberMAPMTHitData*>(fDataItems[DET_FI31]->At(k));
@@ -925,7 +916,7 @@ void R3BTrackingS522::TransformPoint(TVector3& point, TVector3* rot, TVector3* t
 	return;
 }
 
-void R3BTrackingS522::TransformPoint1(TVector3& point1,/* TVector3 rot1, */TVector3 trans1)
+void R3BTrackingS522::TransformPoint1(TVector3& point1, TVector3 rot1, TVector3 trans1)
 {
 
 	/*	cout<<"pointx "<<point1.X()<<endl;
@@ -940,26 +931,26 @@ void R3BTrackingS522::TransformPoint1(TVector3& point1,/* TVector3 rot1, */TVect
 		cout<<"transy "<<trans1.Y()<<endl;
 		cout<<"transz "<<trans1.Z()<<endl;
 		*/
-//	r1.SetToIdentity();
+	r1.SetToIdentity();
 	// First Euler rotation around Y axis
-//	r1.RotateY(rot1.Y());
+	r1.RotateY(rot1.Y());
 	// get local X axis after first rotation
-//	v3_localX1.SetMagThetaPhi(1, r1.ThetaX(), r1.PhiX());
+	v3_localX1.SetMagThetaPhi(1, r1.ThetaX(), r1.PhiX());
 	//cout<<"R1tx "<<r1.ThetaX()<<endl;
 	//cout<<"R1px "<<r1.PhiX()<<endl;
 	//cout<<"rotz "<<rot.Z()<<endl;
 
 
 	// Second Euler rotation around local X axis
-//	r1.Rotate(rot1.X(), v3_localX1);
+	r1.Rotate(rot1.X(), v3_localX1);
 	// get local Z axis after second rotation	
-//	v3_localZ1.SetMagThetaPhi(1, r1.ThetaZ(), r1.PhiZ());
+	v3_localZ1.SetMagThetaPhi(1, r1.ThetaZ(), r1.PhiZ());
 	//cout<<"R1tZ "<<r1.ThetaZ()<<endl;
 	//cout<<"R1pZ "<<r1.PhiZ()<<endl;
 
 	// final rotation around local Z axis
-//	r1.Rotate(rot1.Z(), v3_localZ1);
-//	point1.Transform(r1);
+	r1.Rotate(rot1.Z(), v3_localZ1);
+	point1.Transform(r1);
 	point1 += (trans1);
 	//cout<<"pointx_a  "<<point1.X()<<endl;
 	//cout<<"pointy_a  "<<point1.Y()<<endl;
@@ -1006,7 +997,7 @@ void R3BTrackingS522::Alignment()
 
 	// Now define minimizer
 	ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Migrad");
-	const Int_t NVarsFunctor = 8; // number of the alignment offsets: (2 angles + 3 offsets) x 4 detectors
+	const Int_t NVarsFunctor = 20; // number of the alignment offsets: (2 angles + 3 offsets) x 4 detectors
 	const double* xs={0};
 	double step[NVarsFunctor]={0};
 	double offset[NVarsFunctor]={0};
@@ -1016,47 +1007,20 @@ void R3BTrackingS522::Alignment()
 	char hname[100];
 
 	// For every detector: 3 Euler angles and 3 shifts
-	for (auto d = 0; d < 4; ++d)
+	for (auto d = 0; d < 5; ++d)
 	{
-	/*	for (auto a = 0; a < 0; ++a) // angle shifts in rad
+		for (auto a = 0; a < 3; ++a) // angle shifts in rad
 		{
 			min_offset[d * 4 + a] = -0.1;
 			max_offset[d * 4 + a] = 0.1;
 			step[d * 4 + a] = 0.001;
-		}*/
-		for (auto o = 0; o < 2; ++o) // position shifts in cm
+		}
+		for (auto o = 0; o < 1; ++o) // position shifts in cm
 		{
-		
-		if(d==0){
-		
-			min_offset[d * 2 + 0 + o] = -5;
-			max_offset[d * 2 + 0 + o] = 5;
-			step[d * 2 + 0 + o] = 0.008; //Valerii
+			min_offset[d * 4 + 3 + o] = -10;
+			max_offset[d * 4 + 3 + o] = 10;
+			step[d * 4 + 3 + o] = 0.01; //Valerii
 			//step[d * 5 + 2 + o] = 0.01;
-		}
-			if(d==1){
-		
-			min_offset[d * 2 + 0 + o] = -10;
-			max_offset[d * 2 + 0 + o] = 10;
-			step[d * 2 + 0 + o] = 0.008; //Valerii
-			//step[d * 5 + 2 + o] = 0.01;
-		}
-			if(d==2){
-		
-			min_offset[d * 2 + 0 + o] = -50;
-			max_offset[d * 2 + 0 + o] = 50;
-			step[d * 2 + 0 + o] = 1; //Valerii
-			//step[d * 5 + 2 + o] = 0.01;
-		}
-		
-			if(d==3){
-		
-			min_offset[d * 2 + 0 + o] = -50;
-			max_offset[d * 2 + 0 + o] = 50;
-			step[d * 2 + 0 + o] = 1; //Valerii
-			//step[d * 5 + 2 + o] = 0.01;
-		}
-		
 		}
 	}
 	for (Int_t i = 0; i < NVarsFunctor; i++)
@@ -1068,9 +1032,9 @@ void R3BTrackingS522::Alignment()
 
 	// Setting up Minimizer function parameters
 	double precision = 1e-10; // 0 - default precision will be automaticalle determined
-	double tolerance = 1;
-	minimizer->SetMaxFunctionCalls(10000); // for Minuit/Minuit2
-	minimizer->SetMaxIterations(1000);           // for GSL
+	double tolerance = 0.2;
+	minimizer->SetMaxFunctionCalls(1000000000); // for Minuit/Minuit2
+	minimizer->SetMaxIterations(3);           // for GSL
 	minimizer->SetTolerance(tolerance);
 	minimizer->SetPrecision(precision);
 	minimizer->SetPrintLevel(2);
@@ -1082,7 +1046,7 @@ void R3BTrackingS522::Alignment()
 	Int_t i = 0;
 	Int_t bs = 0;
 	bool good_minimum = false;
-	while (bs < 1000) // running several minimizations
+	while (bs < 3) // running several minimizations
 	{	
 		minimizer->Clear();
 		for (i = 0; i < NVarsFunctor; i++) // sampling +=50% from limits
@@ -1156,34 +1120,34 @@ void R3BTrackingS522::Alignment()
 double R3BTrackingS522::AlignmentErrorS522(const double* par)
 {
 
-	//gMDFTrackerS522->f1_ang_offset.SetXYZ(par[0], par[1], par[2]);
-	gMDFTrackerS522->mw_pos_offset.SetXYZ(par[0], par[1]  , 0);
+	gMDFTrackerS522->f1_ang_offset.SetXYZ(par[0], par[1], par[2]);
+	gMDFTrackerS522->f1_pos_offset.SetXYZ(par[3], 0 , 0);
 
-	//gMDFTrackerS522->f2_ang_offset.SetXYZ(par[4], par[5], par[6]);
-	//gMDFTrackerS522->f2_pos_offset.SetXYZ(0, par[7], 0);
+	gMDFTrackerS522->f2_ang_offset.SetXYZ(par[4], par[5], par[6]);
+	gMDFTrackerS522->f2_pos_offset.SetXYZ(0, par[7], 0);
 
-	//gMDFTrackerS522->f32_ang_offset.SetXYZ(par[8], par[9], par[10]);
-	gMDFTrackerS522->f32_pos_offset.SetXYZ(par[2], par[3] , 0);
+	gMDFTrackerS522->f32_ang_offset.SetXYZ(par[8], par[9], par[10]);
+	gMDFTrackerS522->f32_pos_offset.SetXYZ(par[11], 0, 0);
 
-	//gMDFTrackerS522->f30_ang_offset.SetXYZ(par[12], par[13], par[14]);
-	gMDFTrackerS522->f30_pos_offset.SetXYZ(par[4], par[5], 0);
+	gMDFTrackerS522->f30_ang_offset.SetXYZ(par[12], par[13], par[14]);
+	gMDFTrackerS522->f30_pos_offset.SetXYZ(0, par[15], 0);
 
-	//gMDFTrackerS522->flast_ang_offset.SetXYZ(par[16], par[17], par[18]);
-	gMDFTrackerS522->flast_pos_offset.SetXYZ(par[6], par[7], 0);
+	gMDFTrackerS522->flast_ang_offset.SetXYZ(par[16], par[17], par[18]);
+	gMDFTrackerS522->flast_pos_offset.SetXYZ(par[19], 0, 0);
 
 
-	double mdf_input[7]; // data container for the MDF function
+	double mdf_input[8]; // data container for the MDF function
 
 	double v2 = 0;
 	double v = 0;
 	int counter = 0;
 	for (auto& d : (gMDFTrackerS522->det_points_vec))
 	{
-		gMDFTrackerS522->vertex_mwpc = d.mw;
-	//	gMDFTrackerS522->f2_point_i = d.f2;
-		gMDFTrackerS522->f32_point = d.f32;
-		gMDFTrackerS522->f30_point = d.f30;
-		gMDFTrackerS522->flast_point = d.flast;	
+		gMDFTrackerS522->f1_point_i = d.f1;
+		gMDFTrackerS522->f2_point_i = d.f2;
+		gMDFTrackerS522->f32_point_i = d.f32;
+		gMDFTrackerS522->f30_point_i = d.f30;
+		gMDFTrackerS522->flast_point_i = d.flast;	
 		//cout<<"BT-> "<<gMDFTrackerS522->f1_point_i.X()<<endl;
 		// This will transform "det_point" vectors into lab frame
 		/*
@@ -1194,24 +1158,24 @@ double R3BTrackingS522::AlignmentErrorS522(const double* par)
 		   cout<<"f2y_ang_x-> "<<gMDFTrackerS522->f2_point_i.Y()<<endl;
 		   cout<<"f2z_ang_y-> "<<gMDFTrackerS522->f2_point_i.Z()<<endl;
 		   */
-		gMDFTrackerS522->TransformPoint1(gMDFTrackerS522->vertex_mwpc,
-				/*gMDFTrackerS522->GetEulerAnglesFoot1() + gMDFTrackerS522->mw_ang_offset,*/
-				/*gMDFTrackerS522->GetPositionFoot1() +  */gMDFTrackerS522->mw_pos_offset);
+		gMDFTrackerS522->TransformPoint1(gMDFTrackerS522->f1_point_i,
+				/*gMDFTrackerS522->GetEulerAnglesFoot1() + */gMDFTrackerS522->f1_ang_offset,
+				/*gMDFTrackerS522->GetPositionFoot1() +  */gMDFTrackerS522->f1_pos_offset);
 
-		/*gMDFTrackerS522->TransformPoint1(gMDFTrackerS522->f2_point_i,
-				gMDFTrackerS522->GetEulerAnglesFoot2() + gMDFTrackerS522->f2_ang_offset,
-				gMDFTrackerS522->GetPositionFoot2() + gMDFTrackerS522->f2_pos_offset);
-*/
-		gMDFTrackerS522->TransformPoint1(gMDFTrackerS522->f32_point,
-				/*gMDFTrackerS522->GetEulerAnglesFiber32() + gMDFTrackerS522->f32_ang_offset,*/
+		gMDFTrackerS522->TransformPoint1(gMDFTrackerS522->f2_point_i,
+				/*gMDFTrackerS522->GetEulerAnglesFoot2() + */gMDFTrackerS522->f2_ang_offset,
+				/*gMDFTrackerS522->GetPositionFoot2() + */gMDFTrackerS522->f2_pos_offset);
+
+		gMDFTrackerS522->TransformPoint1(gMDFTrackerS522->f32_point_i,
+				/*gMDFTrackerS522->GetEulerAnglesFiber32() +*/ gMDFTrackerS522->f32_ang_offset,
 				/*gMDFTrackerS522->GetPositionFiber32() + */gMDFTrackerS522->f32_pos_offset);
 
-		gMDFTrackerS522->TransformPoint1(gMDFTrackerS522->f30_point,
-				/*gMDFTrackerS522->GetEulerAnglesFiber30() + gMDFTrackerS522->f30_ang_offset,*/
+		gMDFTrackerS522->TransformPoint1(gMDFTrackerS522->f30_point_i,
+				/*gMDFTrackerS522->GetEulerAnglesFiber30() + */gMDFTrackerS522->f30_ang_offset,
 				/*gMDFTrackerS522->GetPositionFiber30() + */gMDFTrackerS522->f30_pos_offset);
 
-		gMDFTrackerS522->TransformPoint1(gMDFTrackerS522->flast_point,
-				/*gMDFTrackerS522->GetEulerAnglesFiber31() + gMDFTrackerS522->flast_ang_offset,*/
+		gMDFTrackerS522->TransformPoint1(gMDFTrackerS522->flast_point_i,
+				/*gMDFTrackerS522->GetEulerAnglesFiber31() + */gMDFTrackerS522->flast_ang_offset,
 				/*gMDFTrackerS522->GetPositionFiber31() + */gMDFTrackerS522->flast_pos_offset);
 
 		/*cout<<"f1_posoff_x-> "<<gMDFTrackerS522->f1_pos_offset.X()<<endl;
@@ -1222,25 +1186,22 @@ double R3BTrackingS522::AlignmentErrorS522(const double* par)
 		  cout<<"f1_ang_x-> "<<gMDFTrackerS522->f1_ang_offset.Y()<<endl;
 		  */
 
-		mdf_input[0] = gMDFTrackerS522->vertex_mwpc.X();
-		mdf_input[1] = gMDFTrackerS522->vertex_mwpc.Y();
-		mdf_input[2] = 0.;
-		mdf_input[3] = gMDFTrackerS522->f32_point.X();
-		mdf_input[4] = gMDFTrackerS522->f32_point.Z();
-		mdf_input[5] = (gMDFTrackerS522->flast_point.X() - mdf_input[3]) / (gMDFTrackerS522->flast_point.Z() - mdf_input[4]);
-		mdf_input[6] = (gMDFTrackerS522->f30_point.Y() - mdf_input[1]) / (gMDFTrackerS522->f30_point.Z() - mdf_input[2]);
+		mdf_input[0] = gMDFTrackerS522->f2_point_i.Y();
+		mdf_input[1] = gMDFTrackerS522->f2_point_i.Z();
+		mdf_input[2] = gMDFTrackerS522->f1_point_i.X();
+		mdf_input[3] = gMDFTrackerS522->f1_point_i.Z();
+		mdf_input[4] = gMDFTrackerS522->f32_point_i.X();
+		mdf_input[5] = gMDFTrackerS522->f32_point_i.Z();
+		mdf_input[6] = (gMDFTrackerS522->flast_point_i.X() - mdf_input[4]) / (gMDFTrackerS522->flast_point_i.Z() - mdf_input[5]);
+		mdf_input[7] = (gMDFTrackerS522->f30_point_i.Y() - mdf_input[0]) / (gMDFTrackerS522->f30_point_i.Z() - mdf_input[1]);
 		v2 += pow((gMDFTrackerS522->Get_MDF_PoQ()->MDF(mdf_input) - gMDFTrackerS522->GetReferencePoQ()), 2);
-		//cout<<"MDF_MWx-> "<<gMDFTrackerS522->vertex_mwpc.X()<<endl;
-		//cout<<"MDF_f32x-> "<<gMDFTrackerS522->f32_point.X()<<endl;
-		cout<<"ref_PoQ-> "<<gMDFTrackerS522->GetReferencePoQ()<<endl;
-		cout<<"V2-> "<<v2<<endl;
-		cout<<"MDF_PoQ "<<gMDFTrackerS522->Get_MDF_PoQ()->MDF(mdf_input)<<endl;
+		cout<<"MDF_PoQ "<<gMDFTrackerS522->Get_MDF_PoQ()->MDF(mdf_input)-gMDFTrackerS522->GetReferencePoQ()<<endl;
 		counter++;
 	}
 	v2 /= counter;
 	v = sqrt(v2);
 	std::cout << "\nReturning error: " << v;
-//	for(int i=0; i<25; i++){cout<<"Par-> "<<par[i]<<endl;}
+	for(int i=0; i<25; i++){cout<<"Par-> "<<par[i]<<endl;}
 	return v;
 
 }

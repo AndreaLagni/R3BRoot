@@ -23,54 +23,69 @@
 
 class R3BTrackS522 : public TObject
 {
-  public:
-    R3BTrackS522();
-    R3BTrackS522(Double_t x,
-             Double_t y,
-             Double_t z,
-             Double_t px,
-             Double_t py,
-             Double_t pz,
-             Double_t q,
-             Double_t AoZ,
-             Double_t ToFm,
-             Double_t Flight_Pathm,
-	     Double_t chix,
-             Double_t chiy,
-             Int_t quality);
-    virtual ~R3BTrackS522();
+	public:
+		R3BTrackS522();
+		R3BTrackS522(Double_t x,
+				Double_t y,
+				Double_t z,
+				Double_t px,
+				Double_t py,
+				Double_t pz,
+				Double_t vx,
+				Double_t vy,
+				Double_t vz,
+				Double_t opa,
+				Double_t q,
+				Double_t AoZ,
+				Int_t Mul,
+				Double_t ToFm,
+				Double_t Flight_Pathm,
+				Double_t chix,
+				Double_t chiy,
+				Int_t quality);
+		virtual ~R3BTrackS522();
 
-    inline const Double_t& GetX() const { return fX; }
-    inline const Double_t& GetY() const { return fY; }
-    inline const Double_t& GetZ() const { return fZ; }
-    inline const Double_t& GetPx() const { return fPx; }
-    inline const Double_t& GetPy() const { return fPy; }
-    inline const Double_t& GetPz() const { return fPz; }
-    inline const Double_t& GetToF() const { return fToFm; }
-    inline const Double_t& GetFlightPath() const { return fFlightPathm; }
-    inline const Double_t& GetQ() const { return fQ; }
-    inline const Double_t& GetAoZ() const { return fAoZ; }
-    inline const Double_t& GetChix() const { return fChix; }
-    inline const Double_t& GetChiy() const { return fChiy; }
-    inline const Int_t& GetQuality() const { return fQuality; }
+		inline const Double_t& GetX() const { return fX; }
+		inline const Double_t& GetY() const { return fY; }
+		inline const Double_t& GetZ() const { return fZ; }
+		inline const Double_t& GetPx() const { return fPx; }
+		inline const Double_t& GetPy() const { return fPy; }
+		inline const Double_t& GetPz() const { return fPz; }
+		inline const Double_t& GetVx() const { return fVx; }
+		inline const Double_t& GetVy() const { return fVy; }
+		inline const Double_t& GetVz() const { return fVz; }
+		inline const Double_t& GetOpa() const { return fOpa; }
+		inline const Double_t& GetToF() const { return fToFm; }
+		inline const Double_t& GetFlightPath() const { return fFlightPathm; }
+		inline const Double_t& GetQ() const { return fQ; }
+		inline const Double_t& GetAoZ() const { return fAoZ; }
+		inline const Int_t& GetMul() const { return fMul; }
+		inline const Double_t& GetChix() const { return fChix; }
+		inline const Double_t& GetChiy() const { return fChiy; }
+		inline const Int_t& GetQuality() const { return fQuality; }
 
-  protected:
-    Double_t fX;
-    Double_t fY;
-    Double_t fZ;
-    Double_t fPx;
-    Double_t fPy;
-    Double_t fPz;
-    Double_t fQ;
-    Double_t fAoZ;
-    Double_t fToFm;
-    Double_t fFlightPathm;
-    Double_t fChix;
-    Double_t fChiy;
-    Int_t fQuality;
+	protected:
+		Double_t fX;
+		Double_t fY;
+		Double_t fZ;
+		Double_t fPx;
+		Double_t fPy;
+		Double_t fPz;
+		Double_t fVx;
+		Double_t fVy;
+		Double_t fVz;
+		Double_t fOpa;
+		Double_t fQ;
+		Double_t fAoZ;
+		Int_t fMul;
+		Double_t fToFm;
+		Double_t fFlightPathm;
+		Double_t fChix;
+		Double_t fChiy;
+		Int_t fQuality;
 
-  public:
-    ClassDef(R3BTrackS522, 1)
+	public:
+		ClassDef(R3BTrackS522, 1)
 };
 
 #endif

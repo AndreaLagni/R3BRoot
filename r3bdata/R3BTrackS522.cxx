@@ -19,48 +19,63 @@
 #include "R3BTrackS522.h"
 
 R3BTrackS522::R3BTrackS522()
-    : fX(0.)
-    , fY(0.)
-    , fZ(0.)
-    , fPx(0.)
-    , fPy(0.)
-    , fPz(0.)
-    , fQ(0)
-    , fAoZ(0.)
-    , fChix(0.)
-    , fToFm(0.)
-    , fFlightPathm(0.)
-    , fChiy(0.)
-    , fQuality(0.)
+	: fX(0.)
+	, fY(0.)
+	, fZ(0.)
+	, fPx(0.)
+	, fPy(0.)
+	, fPz(0.)
+	, fVx(0.)
+	, fVy(0.)
+	, fVz(0.)
+	, fOpa(0)
+	, fQ(0)
+	, fAoZ(0.)
+	, fMul(0.)
+	, fChix(0.)
+	, fToFm(0.)
+	, fFlightPathm(0.)
+	, fChiy(0.)
+	  , fQuality(0.)
 {
 }
 
 R3BTrackS522::R3BTrackS522(Double_t x,
-                   Double_t y,
-                   Double_t z,
-                   Double_t px,
-                   Double_t py,
-                   Double_t pz,
-                   Double_t q,
-                   Double_t AoZ,
-                   Double_t ToFm,
-                   Double_t FlightPathm,
-                   Double_t chix,
-                   Double_t chiy,
-                   Int_t quality)
-    : fX(x)
-    , fY(y)
-    , fZ(z)
-    , fPx(px)
-    , fPy(py)
-    , fPz(pz)
-    , fQ(q)
-    , fAoZ(AoZ)
-    , fToFm(ToFm)
-    , fFlightPathm(FlightPathm)
-    , fChix(chix)
-    , fChiy(chiy)
-    , fQuality(quality)
+		Double_t y,
+		Double_t z,
+		Double_t px,
+		Double_t py,
+		Double_t pz,
+		Double_t vx,
+		Double_t vy,
+		Double_t vz,
+		Double_t opa,
+		Double_t q,
+		Double_t AoZ,
+		Int_t Mul,
+		Double_t ToFm,
+		Double_t FlightPathm,
+		Double_t chix,
+		Double_t chiy,
+		Int_t quality)
+	: fX(x)
+	, fY(y)
+	, fZ(z)
+	, fPx(px)
+	, fPy(py)
+	, fPz(pz)
+	, fVx(vx)
+	, fVy(vy)
+	, fVz(vz)
+	, fOpa(opa)
+	, fQ(q)
+	, fAoZ(AoZ)
+	, fMul(Mul)
+	, fToFm(ToFm)
+	, fFlightPathm(FlightPathm)
+	, fChix(chix)
+	, fChiy(chiy)
+	  , fQuality(quality)
 {
 }
 

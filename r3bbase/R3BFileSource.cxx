@@ -482,22 +482,22 @@ Int_t R3BFileSource::ReadEvent(UInt_t i)
      **/
     if (i > 0)
     {
-        printf("Processed: \033[32m %d \033[0m of \033[34m %d \033[0m (\033[33m %.2f \033[0m of 100), current RunId "
-               "\033[31m %d \033[0m \r",
-               i + 1,
-               fNoOfEntries,
-               100. * i / (double)(fNoOfEntries),
-               fRunId);
-        fflush(stdout);
+	    // printf("Processed: \033[32m %d \033[0m of \033[34m %d \033[0m (\033[33m %.2f \033[0m of 100), current RunId "
+	    //   "\033[31m %d \033[0m \r",
+	    //      i + 1,
+	    //    fNoOfEntries,
+	    //  100. * i / (double)(fNoOfEntries),
+	    //      fRunId);
+	    // fflush(stdout);
     }
 
     if (nextts > 0 && prevts >= 0 && (fEvtHeader->GetTimeStamp() > nextts || fEvtHeader->GetTimeStamp() < prevts))
     {
-        fRunId = GetRunid(fEvtHeader->GetTimeStamp());
+	    fRunId = GetRunid(fEvtHeader->GetTimeStamp());
     }
 
     if (fInChain->GetEntry(i))
-        return 0;
+	    return 0;
 
     return 1;
 }
@@ -512,75 +512,75 @@ void R3BFileSource::AddFile(TString FileName) { fInputChainList.push_back(FileNa
 
 void R3BFileSource::AddFriendsToChain()
 {
-    // Loop over all Friend files and extract the type. The type is defined by
-    // the tree which is stored in the file. If there is already a chain of with
-    // this type of tree then the file will be added to this chain.
-    // If there is no such chain it will be created.
-    //
-    // Check if the order of runids and the event numbers per runid for all
-    // friend chains is the same as the one defined by the input chain.
-    // TODO: Should the order be corrected or should the execution be stopped.
-    // The order in the input tree defined by the order in which the files have
-    // been added. A file is defined by the runid.
+	// Loop over all Friend files and extract the type. The type is defined by
+	// the tree which is stored in the file. If there is already a chain of with
+	// this type of tree then the file will be added to this chain.
+	// If there is no such chain it will be created.
+	//
+	// Check if the order of runids and the event numbers per runid for all
+	// friend chains is the same as the one defined by the input chain.
+	// TODO: Should the order be corrected or should the execution be stopped.
+	// The order in the input tree defined by the order in which the files have
+	// been added. A file is defined by the runid.
 
-    // In the old way it was needed sometimes to add a freind file more
-    // than once. This is not needed any longer, so we remove deuplicates
-    // from the list and display a warning.
-    std::list<TString> friendList;
-    for (auto fileName : fFriendFileList)
-    {
-        if (find(friendList.begin(), friendList.end(), fileName) == friendList.end())
-        {
-            friendList.push_back(fileName);
-        }
-    }
-    // TODO: print a warning if it was neccessary to remove a filname from the
-    // list. This can be chacked by comparing the size of both list
+	// In the old way it was needed sometimes to add a freind file more
+	// than once. This is not needed any longer, so we remove deuplicates
+	// from the list and display a warning.
+	std::list<TString> friendList;
+	for (auto fileName : fFriendFileList)
+	{
+		if (find(friendList.begin(), friendList.end(), fileName) == friendList.end())
+		{
+			friendList.push_back(fileName);
+		}
+	}
+	// TODO: print a warning if it was neccessary to remove a filname from the
+	// list. This can be chacked by comparing the size of both list
 
-    TFile* temp = gFile;
+	TFile* temp = gFile;
 
-    Int_t friendType = 1;
-    // Loop over all files which have been added as friends
-    for (auto fileName : friendList)
-    {
-        TString inputLevel;
-        // Loop over all already defined input levels to check if this type
-        // of friend tree is already added.
-        // If this type of friend tree already exist add the file to the
-        // then already existing friend chain. If this type of friend tree
-        // does not exist already create a new friend chain and add the file.
-        Bool_t inputLevelFound = kFALSE;
-        TFile* inputFile;
-        for (auto level : fInputLevel)
-        {
-            inputLevel = level;
+	Int_t friendType = 1;
+	// Loop over all files which have been added as friends
+	for (auto fileName : friendList)
+	{
+		TString inputLevel;
+		// Loop over all already defined input levels to check if this type
+		// of friend tree is already added.
+		// If this type of friend tree already exist add the file to the
+		// then already existing friend chain. If this type of friend tree
+		// does not exist already create a new friend chain and add the file.
+		Bool_t inputLevelFound = kFALSE;
+		TFile* inputFile;
+		for (auto level : fInputLevel)
+		{
+			inputLevel = level;
 
-            inputFile = TFile::Open(fileName);
-            if (inputFile->IsZombie())
-            {
-                LOG(fatal) << "Error opening the file " << level.Data()
-                           << " which should be added to the input chain or as friend chain";
-            }
+			inputFile = TFile::Open(fileName);
+			if (inputFile->IsZombie())
+			{
+				LOG(fatal) << "Error opening the file " << level.Data()
+					<< " which should be added to the input chain or as friend chain";
+			}
 
-            // Check if the branchlist is already stored in the map. If it is
-            // already stored add the file to the chain.
-            Bool_t isOk = CompareBranchList(inputFile, inputLevel);
-            if (isOk)
-            {
-                inputLevelFound = kTRUE;
-                inputFile->Close();
-                continue;
-            }
-            inputFile->Close();
-        }
-        if (!inputLevelFound)
-        {
-            inputLevel = Form("FriendTree_%i", friendType);
-            CreateNewFriendChain(fileName, inputLevel);
-            friendType++;
-        }
+			// Check if the branchlist is already stored in the map. If it is
+			// already stored add the file to the chain.
+			Bool_t isOk = CompareBranchList(inputFile, inputLevel);
+			if (isOk)
+			{
+				inputLevelFound = kTRUE;
+				inputFile->Close();
+				continue;
+			}
+			inputFile->Close();
+		}
+		if (!inputLevelFound)
+		{
+			inputLevel = Form("FriendTree_%i", friendType);
+			CreateNewFriendChain(fileName, inputLevel);
+			friendType++;
+		}
 
-        TChain* chain = static_cast<TChain*>(fFriendTypeList[inputLevel]);
+		TChain* chain = static_cast<TChain*>(fFriendTypeList[inputLevel]);
         chain->AddFile(fileName, 1234567890, FairRootManager::GetTreeName());
     }
     gFile = temp;
